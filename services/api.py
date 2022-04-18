@@ -4,6 +4,7 @@ import json
 
 class BetFairAPI:
     betfair_url = 'https://api.betfair.com/v1/account'
+    s = requests.Session()
 
     def __init__(self, name: str, password: str,
                  x_application_id: str) -> None:
@@ -21,7 +22,11 @@ class BetFairAPI:
         data = {'name': name, 'password': password}
         data = json.dumps(data)
         print(data)
-        self.r = requests.post(url=auth_url, data=data, headers=headers)
+        self.r = self.s.post(url=auth_url,
+                             data=data,
+                             headers=headers,
+                             cert=('/certs/client-2048.crt',
+                                   '/certs/client-2048.key'))
         self.data = self.r
         print(self.r.json())
 
