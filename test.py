@@ -6,7 +6,7 @@ headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/x-www-form-urlencoded'
 }
-data = {'name': 'marcosp199610', 'password': 'Mmm.415263'}
+data = {'username': 'marcosp199610', 'password': 'Mmm.415263'}
 import requests
 
 s = requests.Session()

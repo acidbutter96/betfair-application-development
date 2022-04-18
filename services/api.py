@@ -1,34 +1,34 @@
 import requests
 import json
+import os
 
 
 class BetFairAPI:
     betfair_url = 'https://api.betfair.com/v1/account'
-    s = requests.Session()
+    __s = requests.Session()
 
     def __init__(self, name: str, password: str,
                  x_application_id: str) -> None:
         self.auth_name = name
         self.x_application_id = x_application_id
-        """ s = requests.Session()
-        s.verify = 'certificates/ssl_cert' """
-        url = 'https://identitysso.betfair.com/api/login/'
-        auth_url = url
+
+        url = 'https://identitysso-cert.betfair.com/api/certlogin'
         headers = {
             'X-Application': x_application_id,
             'Accept': 'application/json',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
-        data = {'name': name, 'password': password}
-        data = json.dumps(data)
-        print(data)
-        self.r = self.s.post(url=auth_url,
-                             data=data,
-                             headers=headers,
-                             cert=('/certs/client-2048.crt',
-                                   '/certs/client-2048.key'))
-        self.data = self.r
-        print(self.r.json())
+        data = {'username': name, 'password': password}
 
-    def to_json(self):
-        return self.data
+        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
+        r = self.__s.post(url=url, data=data, headers=headers)
+        self.__auth = r.json()
+
+        if self.__auth['loginStatus'] == 'SUCCESS':
+            self.session_token = self.__auth['sessionToken']
+            print('User: {} is authenticated'.format(data['username']))
+            return None
+        if self.__auth['loginStatus']:
+            print('Error: {}'.format(self.__auth['loginStatus']))
+            return None
+        print('Authentication failed, verify your credentials and try again')
