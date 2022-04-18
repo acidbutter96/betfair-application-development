@@ -32,3 +32,24 @@ class BetFairAPI:
             print('Error: {}'.format(self.__auth['loginStatus']))
             return None
         print('Authentication failed, verify your credentials and try again')
+
+
+class BettingAPI(BetFairAPI):
+    __s = requests.Session()
+    url = 'https://api.betfair.com/exchange/betting/rest/v1.0/'
+
+    def __init__(self, name, password, x_application_id):
+        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
+        super().__init__(name, password, x_application_id)
+
+    def request_json(self, operation_name: str, data):
+        request_url = self.url + '{}'.format(operation_name)
+        headers = {
+            'X-Application': self.x_application_id,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Authentication': self.session_token
+        }
+
+        response = self.__s.post(url=request_url, data=data, headers=headers)
+        return response
