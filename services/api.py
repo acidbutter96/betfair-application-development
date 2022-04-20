@@ -42,7 +42,7 @@ class BettingAPI(BetFairAPI):
         self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
 
-    def json_rpc_req(self, operation_name: str, data) -> tuple:
+    def __json_rpc_req(self, operation_name: str, data) -> tuple:
         request_url = self.url  #+ '{}'.format(operation_name)
         headers = {
             'X-Application': self.x_application_id,
