@@ -1,7 +1,7 @@
 from services.api import BettingAPI
 
 betfair = BettingAPI('marcosp199610', 'Mmm.415263', 'IJE2hh59JFLsqo1Z')
-data = {"filter": {"textQuery": ""}}
+data = {"filter": {}}
 print(data)
 
-teste = betfair.request_json('listEventTypes/', str(data))
+teste = betfair.json_rpc_req('listEventTypes', data)

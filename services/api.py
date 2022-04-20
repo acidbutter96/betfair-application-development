@@ -36,20 +36,37 @@ class BetFairAPI:
 
 class BettingAPI(BetFairAPI):
     __s = requests.Session()
-    url = 'https://api.betfair.com/exchange/betting/rest/v1.0/'
+    url = 'https://api.betfair.com/exchange/betting/json-rpc/v1'
 
     def __init__(self, name, password, x_application_id):
         self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
 
-    def request_json(self, operation_name: str, data):
-        request_url = self.url + '{}'.format(operation_name)
+    def json_rpc_req(self, operation_name: str, data) -> tuple:
+        request_url = self.url  #+ '{}'.format(operation_name)
         headers = {
             'X-Application': self.x_application_id,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
             'X-Authentication': self.session_token
         }
-
-        response = self.__s.post(url=request_url, data=data, headers=headers)
-        return response
+        rb = {
+            "jsonrpc": "2.0",
+            "method": "SportsAPING/v1.0/{}".format(operation_name),
+            "params": [data],
+            "id": 1
+        }
+        request_body = json.dumps(rb)
+        try:
+            response = self.__s.post(url=request_url,
+                                     data=request_body,
+                                     headers=headers)
+        except Exception as e:
+            response
+        error_key = list(response.json().keys()).count('error') == 1
+        if error_key or response.status_code != 200:
+            raise Exception(
+                "Bad request\n response code: {}\n Body response: {}".format(
+                    response.status_code, response.content))
+        return response.json()['result'], response.json(
+        ), response.status_code, response.url
