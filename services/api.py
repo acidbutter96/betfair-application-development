@@ -58,7 +58,7 @@ class BettingAPI(BetFairAPI):
         self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
 
-    def json_rpc_req(self, operation_name: str, data) -> tuple:
+    def __json_rpc_req(self, operation_name: str, data) -> tuple:
         request_url = self.json_rpc_url  #+ '{}'.format(operation_name)
         headers = {
             'X-Application': self.x_application_id,
@@ -83,7 +83,7 @@ class BettingAPI(BetFairAPI):
         error_key = list(response.json().keys()).count('error') == 1
         return self.__res_parser(exception, response, error_key)
 
-    def rest_req(self, operation_name: str, data: dict) -> tuple:
+    def __rest_req(self, operation_name: str, data: dict) -> tuple:
         request_url = '{}{}/'.format(
             self.REST_url, operation_name)  #+ '{}'.format(operation_name)
         headers = {
@@ -102,3 +102,31 @@ class BettingAPI(BetFairAPI):
         except Exception as e:
             exception = str(e)
         return self.__res_parser(exception, response, False, True)
+
+    def get_soccer_event_list(self) -> None:
+        print('Getting soccer events list\nPOST - listEvents')
+        data = {"filter": {"eventTypeIds": ["1"]}}
+        try:
+            self.soccer_events = self.__rest_req('listEvents', data)[0]
+        except Exception as e:
+            print('Exception {}'.format(e))
+            return
+        print('{} events founded'.format(len(self.soccer_events)))
+
+    def get_competition_list(self, events_list: list = []) -> None:
+        event_ids_list = []
+        if self.soccer_events:
+            for event in self.soccer_events:
+                event_ids_list.append(event['event']['id'])
+        if events_list and len(event_ids_list) == 0:
+            for event in events_list:
+                event_ids_list.append(event['event']['id'])
+        data = {"filter": {"eventIds": event_ids_list}}
+        try:
+            print('Getting data...')
+            self.competition_list = self.__rest_req('listCompetitions',
+                                                    data)[0]
+        except Exception as e:
+            print('Exception {}'.format(e))
+            return
+        print('{} events founded'.format(len(self.competition_list)))
