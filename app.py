@@ -1,6 +1,6 @@
-from services.api import BettingAPI
+from resources.data_threatment import DataParser
 
-betfair = BettingAPI('marcosp199610', 'Mmm.415263', 'IJE2hh59JFLsqo1Z')
+betfair = DataParser()
 betfair.get_soccer_event_list()
 print(betfair.soccer_events)
 betfair.get_competition_list()
