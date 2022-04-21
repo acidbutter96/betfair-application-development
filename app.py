@@ -1,6 +1,6 @@
-from resources.data_threatment import DataParser
+from resources.data_threatment import DataFrameParser
 
-betfair = DataParser()
+betfair = DataFrameParser()
 betfair.get_soccer_event_list()
 print(betfair.soccer_events)
 betfair.get_competition_list()

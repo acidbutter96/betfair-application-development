@@ -107,7 +107,22 @@ class BettingAPI(BetFairAPI):
         print('Getting soccer events list\nPOST - listEvents')
         data = {"filter": {"eventTypeIds": ["1"]}}
         try:
-            self.soccer_events = self.__rest_req('listEvents', data)[0]
+            self.soccer_events = []
+            for event in self.__rest_req('listEvents', data)[0]:
+                self.soccer_events.append({
+                    "id":
+                    event["event"]["id"],
+                    "name":
+                    event["event"]["name"],
+                    "countryCode":
+                    event["event"]["countryCode"],
+                    "timezone":
+                    event["event"]["timezone"],
+                    "openDate":
+                    event["event"]["openDate"],
+                    "marketCount":
+                    event["event"]["marketCount"]
+                })
         except Exception as e:
             print('Exception {}'.format(e))
             return
@@ -124,8 +139,18 @@ class BettingAPI(BetFairAPI):
         data = {"filter": {"eventIds": event_ids_list}}
         try:
             print('Getting data...')
-            self.competition_list = self.__rest_req('listCompetitions',
-                                                    data)[0]
+            self.competition_list = []
+            for comp in self.__rest_req('listCompetitions', data)[0]:
+                self.competition_list.append({
+                    "id":
+                    comp["competition"]["id"],
+                    "name":
+                    comp["competition"]["name"],
+                    "marketCount":
+                    comp["marketCount"],
+                    "competitionRegion":
+                    comp["competitionRegion"]
+                })
         except Exception as e:
             print('Exception {}'.format(e))
             return
