@@ -10,44 +10,7 @@ class DataFrameParser(BettingAPI):
         self.get_competition_list()
 
     def first_cycle(self) -> pd.DataFrame:
-        df = pd
-        """ 
-            soccer event data structure
-            {
-                'event': {
-                    'id': '31397413',
-                    'name': 'Genclerbirligi v Bandirmaspor',
-                    'countryCode': 'TR',
-                    'timezone': 'GMT',
-                    'openDate': '2022-04-23T13:00:00.000Z'},
-                    'marketCount': 24
-                }
-            }
-            competition list data structure
-            {
-                'competition': {
-                'id': '12220485',
-                'name': "FIFA Women's World Cup"
-                },
-            'marketCount': 1,
-            'competitionRegion': 'International'
-            }
-            refactor
-            soccer
-            {
-                "id": "31397413",
-                "name": "Genclerbirligi v Bandirmaspor",
-                "countryCode": "TR",
-                "timezone": "GMT",
-                "openDate": "2022-04-23T13:00:00.000Z"},
-                "marketCount": 24,
-            }
-            competition
-            {
-                'id': '12220485',
-                'name': "FIFA Women's World Cup"
-                'marketCount': 1,
-                'competitionRegion': 'International'
-            }
-         """
-        pass
+        soccer_df = pd.DataFrame(self.soccer_events)
+        print(self.soccer_events)
+
+        return soccer_df

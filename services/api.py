@@ -54,6 +54,45 @@ class BettingAPI(BetFairAPI):
         return response.json(), response.json(
         ), response.status_code, response.url
 
+    @staticmethod
+    def __soccer_event_list_builder(event) -> dict:
+        event_keys = list(event.keys())
+        has_event = event_keys.count("event") == 1
+
+        has_mkt_count = list(event_keys).count("marketCount") == 1
+        data = {}
+
+        if has_event:
+            event_e_keys = list(event["event"].keys())
+            has_country_code = event_e_keys.count("countryCode") == 1
+            data["event_id"] = event["event"]["id"]
+            data["teams_name"] = event["event"]["name"].split(" v ")
+            data["event_timezone"] = event["event"]["timezone"]
+            data["event_open_date"] = event["event"]["openDate"]
+            if has_country_code:
+                data["event_country_code"] = event["event"]["countryCode"]
+            if has_mkt_count:
+                data["event_market_count"] = event["marketCount"]
+        return data
+
+    @staticmethod
+    def __competition_list_builder(competition) -> dict:
+        comp_keys = list(competition.keys())
+        has_comp = comp_keys.count("competition") == 1
+        has_mkt_count = comp_keys.count("marketCount") == 1
+        has_comp_reg = comp_keys.count("competitionRegion") == 1
+
+        data = {}
+
+        if has_comp:
+            data["competition_id"] = competition["competition"]["id"]
+            data["competition_name"] = competition["competition"]["name"]
+        if has_mkt_count:
+            data["competition_market_count"] = competition["marketCount"]
+        if has_comp_reg:
+            data["competition_region"] = competition["competitionRegion"]
+        return data
+
     def __init__(self, name, password, x_application_id):
         self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
@@ -109,48 +148,25 @@ class BettingAPI(BetFairAPI):
         try:
             self.soccer_events = []
             for event in self.__rest_req('listEvents', data)[0]:
-                self.soccer_events.append({
-                    "id":
-                    event["event"]["id"],
-                    "name":
-                    event["event"]["name"],
-                    "countryCode":
-                    event["event"]["countryCode"],
-                    "timezone":
-                    event["event"]["timezone"],
-                    "openDate":
-                    event["event"]["openDate"],
-                    "marketCount":
-                    event["event"]["marketCount"]
-                })
+                self.soccer_events.append(
+                    self.__soccer_event_list_builder(event))
         except Exception as e:
             print('Exception {}'.format(e))
             return
         print('{} events founded'.format(len(self.soccer_events)))
 
-    def get_competition_list(self, events_list: list = []) -> None:
+    def get_competition_list(self) -> None:
         event_ids_list = []
         if self.soccer_events:
             for event in self.soccer_events:
-                event_ids_list.append(event['event']['id'])
-        if events_list and len(event_ids_list) == 0:
-            for event in events_list:
-                event_ids_list.append(event['event']['id'])
+                event_ids_list.append(event["event_id"])
         data = {"filter": {"eventIds": event_ids_list}}
         try:
             print('Getting data...')
             self.competition_list = []
             for comp in self.__rest_req('listCompetitions', data)[0]:
-                self.competition_list.append({
-                    "id":
-                    comp["competition"]["id"],
-                    "name":
-                    comp["competition"]["name"],
-                    "marketCount":
-                    comp["marketCount"],
-                    "competitionRegion":
-                    comp["competitionRegion"]
-                })
+                self.competition_list.append(
+                    self.__competition_list_builder(comp))
         except Exception as e:
             print('Exception {}'.format(e))
             return
