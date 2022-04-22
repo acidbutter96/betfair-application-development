@@ -10,7 +10,13 @@ class DataFrameParser(BettingAPI):
         self.get_competition_list()
 
     def first_cycle(self) -> pd.DataFrame:
-        soccer_df = pd.DataFrame(self.soccer_events)
-        print(self.soccer_events)
+        concatenated = []
+        for event in self.soccer_events:
+            concatenated.append(self.get_competition(event["event_id"]))
+        self.competition_list = concatenated
+        self.df = pd.concat([
+            pd.DataFrame(self.soccer_events),
+            pd.DataFrame(self.competition_list)
+        ])
 
-        return soccer_df
+        return self.df

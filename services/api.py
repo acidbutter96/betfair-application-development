@@ -171,3 +171,16 @@ class BettingAPI(BetFairAPI):
             print('Exception {}'.format(e))
             return
         print('{} events founded'.format(len(self.competition_list)))
+
+    def get_competition(self, event: str) -> dict:
+        data = {"filter": {"eventIds": [event]}}
+        try:
+            print('Getting data...')
+            self.competition_list = []
+            for comp in self.__rest_req('listCompetitions', data)[0]:
+                self.competition_list.append(
+                    self.__competition_list_builder(comp))
+        except Exception as e:
+            print('Exception {}'.format(e))
+            return
+        print('{} events founded'.format(len(self.competition_list)))
