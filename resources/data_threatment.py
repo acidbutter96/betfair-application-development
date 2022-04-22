@@ -10,7 +10,8 @@ class DataFrameParser(BettingAPI):
         self.get_competition_list()
 
     def first_cycle(self) -> pd.DataFrame:
-        concatenated = []
+        pass
+        """ concatenated = []
         for event in self.soccer_events:
             concatenated.append(self.get_competition(event["event_id"]))
         self.competition_list = concatenated
@@ -19,4 +20,4 @@ class DataFrameParser(BettingAPI):
             pd.DataFrame(self.competition_list)
         ])
 
-        return self.df
+        return self.df """

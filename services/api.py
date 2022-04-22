@@ -155,32 +155,112 @@ class BettingAPI(BetFairAPI):
             return
         print('{} events founded'.format(len(self.soccer_events)))
 
-    def get_competition_list(self) -> None:
-        event_ids_list = []
-        if self.soccer_events:
-            for event in self.soccer_events:
-                event_ids_list.append(event["event_id"])
-        data = {"filter": {"eventIds": event_ids_list}}
-        try:
-            print('Getting data...')
-            self.competition_list = []
-            for comp in self.__rest_req('listCompetitions', data)[0]:
-                self.competition_list.append(
-                    self.__competition_list_builder(comp))
-        except Exception as e:
-            print('Exception {}'.format(e))
-            return
-        print('{} events founded'.format(len(self.competition_list)))
+    def parse_competition_req(self, output_list, temp_list, aux_index,
+                              n) -> tuple:
+        output_list = []
+        temp_list = self.__rest_req('listCompetitions',
+                                    event_ids_list[0:50])[0]
+        output_list = [*output_list, *temp_list]
+        aux_index += n
+        sub_aux_index = n
+        event_ids_list = event_ids_list[n:]
+        return output_list, aux_index, sub_aux_index
 
-    def get_competition(self, event: str) -> dict:
-        data = {"filter": {"eventIds": [event]}}
+    def add_n_to_competition(self, n, output_list, temp_list, aux_index,
+                             event_ids_list):
+        temp_list = self.__rest_req('listCompetitions',
+                                    event_ids_list[0:50])[0]
+        return self.parse_competition_req(self, output_list, temp_list,
+                                          aux_index, 50)
+
+    def get_competition_list(self) -> None:
+        event_ids_list = [x["event_id"] for x in self.soccer_events]
+        events_lenght = len(event_ids_list)
+        aux_index = 0
+        output_list = []
+        all_competitions = self.get_competitions(event_ids_list)
+
+        while aux_index < events_lenght:
+            remainscent_index = events_lenght - aux_index
+
+            print(
+                'events lenght: {}\naux index: {}\nremainscent index: {}\n\n'.
+                format(events_lenght, aux_index, remainscent_index))
+
+            if len(all_competitions) == events_lenght:
+                aux_index = events_lenght
+                output_list = all_competitions
+                break
+            else:
+                first_100 = self.get_competitions(event_ids_list[:100])
+                print('First 100 {}\n'.format(len(first_100)))
+                if len(first_100) == 100 and not remainscent_index < 100:
+                    #print('Has 100 competitions\n{} event length'.format(aux_index))
+                    output_list = [*output_list, first_100]
+                    event_ids_list = event_ids_list[100:]
+                    aux_index = aux_index + 100
+                else:
+                    first_50 = self.get_competitions(event_ids_list[:50])
+                    print('First 50 {}\n'.format(len(first_50)))
+                    if len(first_50) == 50 and not remainscent_index < 50:
+                        output_list = [*output_list, *first_50]
+                        event_ids_list = event_ids_list[50:]
+                        aux_index = aux_index + 50
+                    else:
+                        first_25 = self.get_competitions(event_ids_list[:25])
+                        print('First 25 {}\n'.format(len(first_25)))
+                        if len(first_25) == 25 and not remainscent_index < 25:
+                            output_list = [*output_list, *first_25]
+                            event_ids_list = event_ids_list[25:]
+                            aux_index = aux_index + 25
+                        else:
+                            first_10 = self.get_competitions(
+                                event_ids_list[:10])
+                            print('First 10 {}\n'.format(len(first_10)))
+                            if len(first_10
+                                   ) == 10 and not remainscent_index < 10:
+                                output_list = [*output_list, *first_10]
+                                event_ids_list = event_ids_list[10:]
+                                aux_index = aux_index + 10
+                            else:
+                                first = self.get_competitions(
+                                    event_ids_list[0])
+                                print('First {}\n'.format(first))
+                                if len(first) == 1:
+                                    output_list = [*output_list, first]
+                                    event_ids_list = event_ids_list[1:]
+                                    aux_index = aux_index + 1
+                                else:
+                                    output_list = [
+                                        *output_list, {
+                                            "competition_id": "0",
+                                            "competition_name": "Unknown",
+                                            "competition_market_count":
+                                            "Unknown",
+                                            "competition_region": "Unknown"
+                                        }
+                                    ]
+                                    output_list = [*output_list, first]
+                                    event_ids_list = event_ids_list[1:]
+                                    aux_index += 1
+                print(len(event_ids_list))
+                print(output_list)
+                #print('end of loop')
+                if aux_index == events_lenght:
+                    print('has ended')
+                    break
+        print(output_list)
+        return output_list
+
+    def get_competitions(self, list: list) -> list:
+        data = {"filter": {"eventIds": [*list]}}
+        competition_list = []
         try:
-            print('Getting data...')
-            self.competition_list = []
+            #print('Getting data...')
             for comp in self.__rest_req('listCompetitions', data)[0]:
-                self.competition_list.append(
-                    self.__competition_list_builder(comp))
+                competition_list.append(self.__competition_list_builder(comp))
         except Exception as e:
             print('Exception {}'.format(e))
             return
-        print('{} events founded'.format(len(self.competition_list)))
+        #print('{} events founded'.format(len(competition_list)))
+        return competition_list
