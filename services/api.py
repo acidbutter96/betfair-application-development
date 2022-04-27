@@ -74,10 +74,6 @@ class BettingAPI(BetFairAPI):
 
     @staticmethod
     def __competition_list_builder(competition, id) -> dict:
-        #print('comp {}\n id {}'.format(competition, id))
-        #print('comp len{}'.format(len(competition)))
-        if len(competition) == 0:
-            print('uai {}'.format(competition))
         comp_keys = list(competition.keys())
         has_comp = comp_keys.count("competition") == 1
         has_mkt_count = comp_keys.count("marketCount") == 1
@@ -114,10 +110,6 @@ class BettingAPI(BetFairAPI):
                                      headers=headers)
         except Exception as e:
             exception = str(e)
-        print(response.content)
-        f = open("response.json", "w+")
-        f.write(str(data))
-        f.close()
         return self.__res_parser(exception, response, False)
 
     def __rest_req(self, operation_name: str, data: dict) -> tuple:
@@ -175,7 +167,6 @@ class BettingAPI(BetFairAPI):
         print('Getting competition list...')
         event_ids_list = [x["event_id"] for x in self.soccer_events]
         events_lenght = len(event_ids_list)
-        aux_index = 0
         request_list = []
         output = []
 
@@ -206,17 +197,14 @@ class BettingAPI(BetFairAPI):
             aux_response = []
             res = self.__json_rpc_req(group)[0]
             output = [*output, *res]
-        #print(output)
-        not_founded_ids = []
+        self.not_founded_ids = []
         final_output = []
         for e in output:
             if len(e['result']) != 0:
                 final_output.append(
                     self.__competition_list_builder(e["result"][0], e["id"]))
             else:
-                not_founded_ids.append(e["id"])
-        print('final output {}'.format(final_output))
-        print('not_founded list {}'.format(not_founded_ids))
+                self.not_founded_ids.append(e["id"])
         self.competition_list = final_output
-
-        return output
+        print('{} competitions founded\n{} competitions not founded'.format(
+            len(self.competition_list), len(self.not_founded_ids)))
