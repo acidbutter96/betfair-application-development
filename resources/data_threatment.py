@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import time
 from services.api import BettingAPI
 
 
@@ -18,10 +19,19 @@ class DataFrameParser(BettingAPI):
         #create competition_name, competition_id columns filled with TF that means To Find
         self.df['competition_name'] = 'TF'
         self.df['competition_id'] = 'TF'
-        #make N blocks of 100 different countries
-        countries_groups = []
-        country_founded = self.df[self.df['event_country_code'] != 'NF'][[
-            'event_country_code', 'event_id'
-        ]]
 
-        return
+        for competition in self.competition_list:
+            for i, row in self.df.iterrows():
+                if row['event_id'] == competition['event_id']:
+                    self.df.loc[
+                        i,
+                        'competition_name'] = competition['competition_name']
+                    self.df.loc[
+                        i, 'competition_id'] = competition['competition_id']
+
+        return self.df
+
+    def to_csv(self):
+        outputname = './output/output-{}.csv'.format(
+            time.strftime("%d-%b-%Y-%H:%M:%S", time.localtime()))
+        self.df.to_csv(outputname, mode='w+')
