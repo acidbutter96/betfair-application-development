@@ -90,6 +90,13 @@ class BettingAPI(BetFairAPI):
             data["competition_region"] = competition["competitionRegion"]
         return data
 
+    @staticmethod
+    def __market_list_builder(competition, id) -> dict:
+        data = {}
+        data["event_id"] = id
+        data["list"] = competition
+        return data
+
     def __init__(self, name, password, x_application_id):
         self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
@@ -145,24 +152,6 @@ class BettingAPI(BetFairAPI):
             return
         print('{} events founded'.format(len(self.soccer_events)))
 
-    def parse_competition_req(self, output_list, temp_list, aux_index,
-                              n) -> tuple:
-        output_list = []
-        temp_list = self.__rest_req('listCompetitions',
-                                    event_ids_list[0:50])[0]
-        output_list = [*output_list, *temp_list]
-        aux_index += n
-        sub_aux_index = n
-        event_ids_list = event_ids_list[n:]
-        return output_list, aux_index, sub_aux_index
-
-    def add_n_to_competition(self, n, output_list, temp_list, aux_index,
-                             event_ids_list):
-        temp_list = self.__rest_req('listCompetitions',
-                                    event_ids_list[0:50])[0]
-        return self.parse_competition_req(self, output_list, temp_list,
-                                          aux_index, 50)
-
     def get_competition_list(self) -> None:
         print('Getting competition list...')
         event_ids_list = [x["event_id"] for x in self.soccer_events]
@@ -208,3 +197,56 @@ class BettingAPI(BetFairAPI):
         self.competition_list = final_output
         print('{} competitions founded\n{} competitions not founded'.format(
             len(self.competition_list), len(self.not_founded_ids)))
+
+    def get_market_list(self) -> None:
+        print('Getting market catalogue list...')
+        event_ids_list = [x["event_id"] for x in self.soccer_events]
+        events_lenght = len(event_ids_list)
+        request_list = []
+        output = []
+
+        def output_list(id):
+            return {
+                "jsonrpc": "2.0",
+                "method": "SportsAPING/v1.0/listMarketCatalogue",
+                "params": {
+                    "filter": {
+                        "eventIds": [id]
+                    },
+                    "maxResults": 1000
+                },
+                "id": id
+            }
+
+        N = int(events_lenght / 100)
+        N2 = events_lenght - N * 100
+        print('N: {}\nN2: {}'.format(N, N2))
+
+        for n in range(N):
+            request_list.append(
+                [output_list(id) for id in event_ids_list[:100]])
+            event_ids_list = event_ids_list[100:]
+
+        if len(event_ids_list) == N2:
+            request_list.append([output_list(id) for id in event_ids_list])
+
+        for group in request_list:
+            aux_response = []
+            res = self.__json_rpc_req(group)[0]
+            output = [*output, *res]
+            """self.request_market_list = request_list
+        self.market = output
+        """
+        self.not_founded_market_ids = []
+        final_output = []
+        for e in output:
+            if len(e['result']) != 0:
+                final_output.append(
+                    self.__market_list_builder(e["result"], e["id"]))
+            else:
+                self.not_founded_market_ids.append(e["id"])
+        self.market_catalogue_list = final_output
+        print('Found markets from {} events\n{} not founded'.format(
+            len(self.market_catalogue_list), len(self.not_founded_market_ids)))
+
+        pass
