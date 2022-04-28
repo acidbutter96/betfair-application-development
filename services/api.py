@@ -220,7 +220,6 @@ class BettingAPI(BetFairAPI):
 
         N = int(events_lenght / 100)
         N2 = events_lenght - N * 100
-        print('N: {}\nN2: {}'.format(N, N2))
 
         for n in range(N):
             request_list.append(
