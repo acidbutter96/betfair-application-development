@@ -22,6 +22,7 @@ class DataFrameParser(BettingAPI):
                                                       if len(x) > 1 else 'N/A')
         df.insert(0, 'home_team_name', df.pop('home_team_name'))
         df.insert(1, 'away_team_name', df.pop('away_team_name'))
+        df.drop('teams_name', axis=1, inplace=True)
         #create competition_name, competition_id columns filled with TF that means To Find
         df['competition_name'] = 'TF'
         df['competition_id'] = 'TF'

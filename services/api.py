@@ -186,17 +186,17 @@ class BettingAPI(BetFairAPI):
             aux_response = []
             res = self.__json_rpc_req(group)[0]
             output = [*output, *res]
-        self.not_founded_ids = []
+        self.not_found_competition_ids = []
         final_output = []
         for e in output:
             if len(e['result']) != 0:
                 final_output.append(
                     self.__competition_list_builder(e["result"][0], e["id"]))
             else:
-                self.not_founded_ids.append(e["id"])
+                self.not_found_competition_ids.append(e["id"])
         self.competition_list = final_output
         print('{} competitions founded\n{} competitions not founded'.format(
-            len(self.competition_list), len(self.not_founded_ids)))
+            len(self.competition_list), len(self.not_found_competition_ids)))
 
     def get_market_list(self) -> None:
         print('Getting market catalogue list...')
