@@ -1,6 +1,7 @@
-import pandas as pd
-import numpy as np
 import time
+
+import numpy as np
+import pandas as pd
 from services.api import BettingAPI
 
 
@@ -11,6 +12,7 @@ class DataFrameParser(BettingAPI):
         self.get_soccer_event_list()
         self.get_competition_list()
         self.get_market_list()
+        self.get_market()
 
     def first_cycle(self) -> pd.DataFrame:
         df = pd.DataFrame(self.soccer_events)
@@ -22,6 +24,7 @@ class DataFrameParser(BettingAPI):
                                                       if len(x) > 1 else 'N/A')
         df.insert(0, 'home_team_name', df.pop('home_team_name'))
         df.insert(1, 'away_team_name', df.pop('away_team_name'))
+        df.insert(0, 'event_id', df.pop('event_id'))
         df.drop('teams_name', axis=1, inplace=True)
         #create competition_name, competition_id columns filled with TF that means To Find
         df['competition_name'] = 'TF'
@@ -43,6 +46,9 @@ class DataFrameParser(BettingAPI):
                 df.loc[
                     i,
                     'competition_id'] = filter_competition[0]['competition_id']
+            else:
+                df.loc[i, 'competition_name'] = 'N/A'
+                df.loc[i, 'competition_id'] = 'N/A'
 
         #create new rows with the market
         for e in self.market_catalogue_list:
@@ -62,11 +68,16 @@ class DataFrameParser(BettingAPI):
         df = df[df['market_name'] != 'TF']
 
         df = df.sort_values(['event_id', 'market_name'])
+        df.reset_index(drop=True, inplace=True)
 
         self.df = df
         return df
 
+    def second_cycle(self)->pd.DataFrame:
+
+        return None
+
     def to_csv(self):
         outputname = './output/output-{}.csv'.format(
-            time.strftime("%d-%b-%Y-%H:%M:%S", time.localtime()))
+            time.strftime("%d-%b-%Y-%H.%M.%S", time.localtime()))
         self.df.to_csv(outputname, mode='w+')

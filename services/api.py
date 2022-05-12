@@ -1,7 +1,8 @@
-from numpy import outer
-import requests
 import json
 import os
+
+import requests
+from numpy import outer
 
 
 class BetFairAPI:
@@ -10,7 +11,7 @@ class BetFairAPI:
 
     def __init__(self, name: str, password: str,
                  x_application_id: str) -> None:
-        self.auth_name = name
+        self.auth_name= name
         self.x_application_id = x_application_id
 
         url = 'https://identitysso-cert.betfair.com/api/certlogin'
@@ -91,10 +92,17 @@ class BettingAPI(BetFairAPI):
         return data
 
     @staticmethod
-    def __market_list_builder(competition, id) -> dict:
+    def __market_list_builder(market, id) -> dict:
         data = {}
         data["event_id"] = id
-        data["list"] = competition
+        data["list"] = market
+        return data
+
+    @staticmethod
+    def __market_list_builder(runner, id) -> dict:
+        data = {}
+        data["event_id"] = id
+        data["list"] = runner
         return data
 
     def __init__(self, name, password, x_application_id):
@@ -249,3 +257,58 @@ class BettingAPI(BetFairAPI):
             len(self.market_catalogue_list), len(self.not_founded_market_ids)))
 
         pass
+
+    def get_market(self) -> None:
+        print('Getting market list...')
+        market_id_list = []
+        # y['marketId'] for y in x['list'] for x in self.market_catalogue_list
+        for x in self.market_catalogue_list:
+            for y in x['list']:
+                market_id_list.append(y['marketId'])
+
+        markets_lenght = len(market_id_list)
+        request_list = []
+        output = []
+
+        def output_list(id):
+            return {
+                "jsonrpc": "2.0",
+                "method": "SportsAPING/v1.0/listMarketBook",
+                "params": {
+                    "marketIds": [id],
+                    "priceProjection": {
+                        "priceData":["EX_ALL_OFFERS"],
+                    }                   
+                },
+                "id": id,
+            }
+
+        N = int(markets_lenght / 100)
+        N2 = markets_lenght - N * 100
+
+        for n in range(N):
+            request_list.append(
+                [output_list(id) for id in market_id_list[:100]])
+            market_id_list = market_id_list[100:]
+
+        if len(market_id_list) == N2:
+            request_list.append([output_list(id) for id in market_id_list])
+        self.teste = request_list
+        for group in request_list:
+            res = self.__json_rpc_req(group)[0]
+            output = [*output, *res]
+            """self.request_market_list = request_list
+        self.market = output
+        """
+        self.not_founded_market_books = []
+        final_output = []
+        for e in output:
+            if len(e['result']) != 0:
+                final_output.append(
+                    self.__market_list_builder(e["result"], e["id"]))
+            else:
+                self.not_founded_market_books.append(e["id"])
+        self.market_book_list = final_output
+        print('Found markets from {} events\n{} not founded'.format(
+            len(self.market_book_list), len(self.not_founded_market_books)))
+        ...
