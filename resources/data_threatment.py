@@ -14,7 +14,9 @@ class DataFrameParser(BettingAPI):
         self.get_market_list()
         self.get_market()
 
-    def first_cycle(self) -> pd.DataFrame:
+    def first_cycle(self) -> None:
+        print('Data treatment\n First cycle...')
+        start = time.time()
         df = pd.DataFrame(self.soccer_events)
         #change country code founded as numpy.nan to NF string meaning Not Founded country code
         df['event_country_code'] = df['event_country_code'].fillna(value='NF')
@@ -69,12 +71,46 @@ class DataFrameParser(BettingAPI):
 
         df = df.sort_values(['event_id', 'market_name'])
         df.reset_index(drop=True, inplace=True)
-
+        end = time.time()
+        total = int(end - start)
         self.df = df
-        return df
+        print('Total time: {} seconds'.format(total))
 
     def second_cycle(self)->pd.DataFrame:
-
+        print('Entering at the second treatment data cycle')
+        start = time.time()
+        df = self.df
+        df['odd'] = np.nan
+        df['odd_type'] = np.nan
+        df['odd_size'] = np.nan
+        df['selection_id'] = 'TF'
+        for mk in self.market_book_list:
+            mk_list = mk['list']
+            list_lenght = len(mk_list)
+            if list_lenght > 0:
+                df_it = df[df['market_id']==mk_list[0]['marketId']]
+                for runner in mk_list[0]['runners']:
+                    for back in runner['ex']['availableToBack']:
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        # print(f'aqui é teste:\n {df_it}')
+                        # print(runner['selectionId'])
+                        df_it2.loc[:,'selection_id']=runner['selectionId']
+                        df_it2.loc[:,'odd'] = back['price']
+                        df_it2.loc[:,'odd_size'] = back['size']
+                        df_it2.loc[:,'odd_type'] = 'back'
+                        # print("solo una:\n\n back \n {}\n\n".format(df_it2))
+                        df = pd.concat([df_it2, df], axis=0)
+                    for lay in runner['ex']['availableToLay']:
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        df_it2.loc[:,'selection_id']=runner['selectionId']
+                        df_it2.loc[:,'odd'] = lay['price']
+                        df_it2.loc[:,'odd_size'] = lay['size']
+                        df_it2.loc[:,'odd_type'] = 'lay'
+                        # print("solo una:\n\n lay \n{}\n\n".format(df_it2))
+                        df = pd.concat([df_it2, df], axis=0)
+        self.df = df[df['selection_id'] != 'TF']
+        end = time.time()
+        print('Processed in {}'.format(end-start))
         return None
 
     def to_csv(self):

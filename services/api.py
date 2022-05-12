@@ -303,6 +303,7 @@ class BettingAPI(BetFairAPI):
         self.not_founded_market_books = []
         final_output = []
         for e in output:
+
             if len(e['result']) != 0:
                 final_output.append(
                     self.__market_list_builder(e["result"], e["id"]))
