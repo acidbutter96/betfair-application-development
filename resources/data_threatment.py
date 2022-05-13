@@ -92,7 +92,7 @@ class DataFrameParser(BettingAPI):
                     for back in runner['ex']['availableToBack']:
                         odd = round(float(back['price']),2)
                         size = round(float(back['size']),2)
-                        real_odd = cls.real_odd(odd)
+                        real_odd = self.real_odd(odd)
                         if real_odd < odd:
                             added_data+=1
                             df_it2 = df_it[df_it['selection_id']=='TF']
