@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 import numpy as np
@@ -76,33 +77,41 @@ class DataFrameParser(BettingAPI):
         self.df = df
         print('Total time: {} seconds'.format(total))
 
-    def second_cycle(self)->pd.DataFrame:
+    async def second_cycle(self)->pd.DataFrame:
         print('Entering at the second treatment data cycle')
         start = time.time()
-        df = self.df
-        df['odd'] = np.nan
-        df['odd_type'] = np.nan
-        df['odd_size'] = np.nan
-        df['selection_id'] = 'TF'
-        df_to_concat = df.dropna()
-        for mk in self.market_book_list:
-            mk_list = mk['list']
+
+        self.df['odd'] = np.nan
+        self.df['odd_type'] = np.nan
+        self.df['odd_size'] = np.nan
+        self.df['selection_id'] = 'TF'
+
+        async def coroutine_market_processing(mk_list):
+            df_to_concat = self.df.dropna()
             list_lenght = len(mk_list)
             if list_lenght > 0:
-                df_it = df[df['market_id']==mk_list[0]['marketId']]
+                df_it = self.df[self.df['market_id']==mk_list[0]['marketId']]
                 for runner in mk_list[0]['runners']:
                     for back in runner['ex']['availableToBack']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
                         df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],back['price'],back['size'],'back']
-                        print('lay\n {}'.format(df_it2))
+                        # print('lay\n {}'.format(df_it2))
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+                    
                     for lay in runner['ex']['availableToLay']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
                         df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],lay['price'],lay['size'],'lay']
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                        print('back\n {}'.format(df_it2))
-        df = pd.concat([df_to_concat, df], axis=0)
-        self.df = df[df['selection_id'] != 'TF']
+                        # print('back\n {}'.format(df_it2))
+            self.df = pd.concat([df_to_concat, self.df], axis=0)
+
+        tasks = []
+        for mk in self.market_book_list:
+            mk_list = mk['list']
+            tasks.append(asyncio.create_task(coroutine_market_processing(mk_list)))
+        await asyncio.gather(*tasks)
+
+        self.df = self.df[self.df['selection_id'] != 'TF']
         end = time.time()
         print('Processed in {}'.format(end-start))
         return None
