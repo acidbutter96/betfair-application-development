@@ -81,37 +81,37 @@ class DataFrameParser(BettingAPI):
         self.df = df
         print('Total time: {} seconds'.format(total))
 
-        async def coroutine_market_processing(self,mk_list:list):
-            df_to_concat = self.df.dropna()
-            list_lenght = len(mk_list)
-            lil_df = self.df
-            added_data=0
-            if list_lenght > 0:
-                df_it = lil_df[lil_df['market_id']==mk_list[0]['marketId']]
-                for runner in mk_list[0]['runners']:
-                    for back in runner['ex']['availableToBack']:
-                        odd = round(float(back['price']),2)
-                        size = round(float(back['size']),2)
-                        real_odd = self.real_odd(odd)
-                        if real_odd < odd:
-                            added_data+=1
-                            df_it2 = df_it[df_it['selection_id']=='TF']
-                            df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
-                                                        odd,real_odd,size,'back']
-                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                    
-                    for lay in runner['ex']['availableToLay']:
-                        odd = float(lay['price'])
-                        size = float(lay['size'])
-                        real_odd = self.real_odd(odd)
-                        if real_odd < odd:
-                            added_data+=1
-                            df_it2 = df_it[df_it['selection_id']=='TF']
-                            df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
-                                                            odd, real_odd, size,'lay']
-                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-            if added_data>=1:
-                self.df = pd.concat([df_to_concat, self.df], axis=0)
+    async def coroutine_market_processing(self,mk_list:list):
+        df_to_concat = self.df.dropna()
+        list_lenght = len(mk_list)
+        lil_df = self.df
+        added_data=0
+        if list_lenght > 0:
+            df_it = lil_df[lil_df['market_id']==mk_list[0]['marketId']]
+            for runner in mk_list[0]['runners']:
+                for back in runner['ex']['availableToBack']:
+                    odd = round(float(back['price']),2)
+                    size = round(float(back['size']),2)
+                    real_odd = self.real_odd(odd)
+                    if real_odd < odd:
+                        added_data+=1
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
+                                                    odd,real_odd,size,'back']
+                    df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+                
+                for lay in runner['ex']['availableToLay']:
+                    odd = float(lay['price'])
+                    size = float(lay['size'])
+                    real_odd = self.real_odd(odd)
+                    if real_odd < odd:
+                        added_data+=1
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
+                                                        odd, real_odd, size,'lay']
+                    df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+        if added_data>=1:
+            self.df = pd.concat([df_to_concat, self.df], axis=0)
 
     async def second_cycle(self)->pd.DataFrame:
         print('Entering at the second treatment data cycle')
