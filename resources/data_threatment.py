@@ -8,6 +8,10 @@ from services.api import BettingAPI
 
 class DataFrameParser(BettingAPI):
 
+    @staticmethod
+    def real_odd(odd:float)->float:
+        return round(odd-5*(odd-1)*10**-2,2)
+
     def __init__(self):
         super().__init__('marcosp199610', 'Mmm.415263', 'IJE2hh59JFLsqo1Z')
         self.get_soccer_event_list()
@@ -77,47 +81,60 @@ class DataFrameParser(BettingAPI):
         self.df = df
         print('Total time: {} seconds'.format(total))
 
+        async def coroutine_market_processing(self,mk_list:list):
+            df_to_concat = self.df.dropna()
+            list_lenght = len(mk_list)
+            lil_df = self.df
+            added_data=0
+            if list_lenght > 0:
+                df_it = lil_df[lil_df['market_id']==mk_list[0]['marketId']]
+                for runner in mk_list[0]['runners']:
+                    for back in runner['ex']['availableToBack']:
+                        odd = round(float(back['price']),2)
+                        size = round(float(back['size']),2)
+                        real_odd = cls.real_odd(odd)
+                        if real_odd < odd:
+                            added_data+=1
+                            df_it2 = df_it[df_it['selection_id']=='TF']
+                            df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
+                                                        odd,real_odd,size,'back']
+                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+                    
+                    for lay in runner['ex']['availableToLay']:
+                        odd = float(lay['price'])
+                        size = float(lay['size'])
+                        real_odd = self.real_odd(odd)
+                        if real_odd < odd:
+                            added_data+=1
+                            df_it2 = df_it[df_it['selection_id']=='TF']
+                            df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
+                                                            odd, real_odd, size,'lay']
+                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+            if added_data>=1:
+                self.df = pd.concat([df_to_concat, self.df], axis=0)
+
     async def second_cycle(self)->pd.DataFrame:
         print('Entering at the second treatment data cycle')
         start = time.time()
 
         self.df['odd'] = np.nan
+        self.df['real_odd'] = np.nan
         self.df['odd_type'] = np.nan
         self.df['odd_size'] = np.nan
         self.df['selection_id'] = 'TF'
 
-        async def coroutine_market_processing(mk_list):
-            df_to_concat = self.df.dropna()
-            list_lenght = len(mk_list)
-            if list_lenght > 0:
-                df_it = self.df[self.df['market_id']==mk_list[0]['marketId']]
-                for runner in mk_list[0]['runners']:
-                    for back in runner['ex']['availableToBack']:
-                        df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],float(back['price']),float(back['size']),'back']
-                        # print('lay\n {}'.format(df_it2))
-                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                    
-                    for lay in runner['ex']['availableToLay']:
-                        df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],float(lay['price']),float(lay['size']),'lay']
-                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                        # print('back\n {}'.format(df_it2))
-            self.df = pd.concat([df_to_concat, self.df], axis=0)
-
         tasks = []
+        print('Starting create coroutines with asyncio')
         for mk in self.market_book_list:
             mk_list = mk['list']
-            tasks.append(asyncio.create_task(coroutine_market_processing(mk_list)))
+            tasks.append(asyncio.create_task(self.coroutine_market_processing(mk_list)))
         await asyncio.gather(*tasks)
+        print('Data processed...\nCleaning empty data')
 
         self.df = self.df[self.df['selection_id'] != 'TF']
         end = time.time()
         print('Processed in {}'.format(end-start))
         return None
-
-    def third_cycle(self)->None:
-        ...
 
     def to_csv(self):
         outputname = './output/output-{}.csv'.format(
