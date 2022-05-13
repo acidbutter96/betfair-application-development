@@ -84,6 +84,7 @@ class DataFrameParser(BettingAPI):
         df['odd_type'] = np.nan
         df['odd_size'] = np.nan
         df['selection_id'] = 'TF'
+        df_to_concat = df.dropna()
         for mk in self.market_book_list:
             mk_list = mk['list']
             list_lenght = len(mk_list)
@@ -92,26 +93,22 @@ class DataFrameParser(BettingAPI):
                 for runner in mk_list[0]['runners']:
                     for back in runner['ex']['availableToBack']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
-                        # print(f'aqui é teste:\n {df_it}')
-                        # print(runner['selectionId'])
-                        df_it2.loc[:,'selection_id']=runner['selectionId']
-                        df_it2.loc[:,'odd'] = back['price']
-                        df_it2.loc[:,'odd_size'] = back['size']
-                        df_it2.loc[:,'odd_type'] = 'back'
-                        # print("solo una:\n\n back \n {}\n\n".format(df_it2))
-                        df = pd.concat([df_it2, df], axis=0)
+                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],back['price'],back['size'],'back']
+                        print('lay\n {}'.format(df_it2))
+                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
                     for lay in runner['ex']['availableToLay']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,'selection_id']=runner['selectionId']
-                        df_it2.loc[:,'odd'] = lay['price']
-                        df_it2.loc[:,'odd_size'] = lay['size']
-                        df_it2.loc[:,'odd_type'] = 'lay'
-                        # print("solo una:\n\n lay \n{}\n\n".format(df_it2))
-                        df = pd.concat([df_it2, df], axis=0)
+                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],lay['price'],lay['size'],'lay']
+                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+                        print('back\n {}'.format(df_it2))
+        df = pd.concat([df_to_concat, df], axis=0)
         self.df = df[df['selection_id'] != 'TF']
         end = time.time()
         print('Processed in {}'.format(end-start))
         return None
+
+    def third_cycle(self)->None:
+        ...
 
     def to_csv(self):
         outputname = './output/output-{}.csv'.format(

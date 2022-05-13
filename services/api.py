@@ -36,7 +36,7 @@ class BetFairAPI:
         print('Authentication failed, verify your credentials and try again')
 
 
-class BettingAPI(BetFairAPI):
+class BetFairAPIRequest(BetFairAPI):
     __s = requests.Session()
     json_rpc_url = 'https://api.betfair.com/exchange/betting/json-rpc/v1'
     REST_url = 'https://api.betfair.com/exchange/betting/rest/v1.0/'
@@ -52,6 +52,49 @@ class BettingAPI(BetFairAPI):
                     response.status_code, response.content, exception))
         return response.json(), response.status_code, response.url
 
+    def __init__(self, name, password, x_application_id):
+        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
+        super().__init__(name, password, x_application_id)
+
+    def __json_rpc_req(self, data: list) -> tuple:
+        request_url = self.json_rpc_url  #+ '{}'.format(operation_name)
+        headers = {
+            'X-Application': self.x_application_id,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Authentication': self.session_token
+        }
+
+        exception = ''
+        try:
+            response = self.__s.post(url=request_url,
+                                     data=json.dumps(data),
+                                     headers=headers)
+        except Exception as e:
+            exception = str(e)
+        return self.__res_parser(exception, response, False)
+
+    def __rest_req(self, operation_name: str, data: dict) -> tuple:
+        request_url = '{}{}/'.format(
+            self.REST_url, operation_name)  #+ '{}'.format(operation_name)
+        headers = {
+            'X-Application': self.x_application_id,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Authentication': self.session_token
+        }
+        rb = data
+        request_body = json.dumps(rb)
+        exception = ''
+        try:
+            response = self.__s.post(url=request_url,
+                                     data=request_body,
+                                     headers=headers)
+        except Exception as e:
+            exception = str(e)
+        return self.__res_parser(exception, response, False)
+
+class ExchangeAPI(BetFairAPIRequest):
     @staticmethod
     def __soccer_event_list_builder(event) -> dict:
         event_keys = list(event.keys())
@@ -106,46 +149,7 @@ class BettingAPI(BetFairAPI):
         return data
 
     def __init__(self, name, password, x_application_id):
-        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
         super().__init__(name, password, x_application_id)
-
-    def __json_rpc_req(self, data: list) -> tuple:
-        request_url = self.json_rpc_url  #+ '{}'.format(operation_name)
-        headers = {
-            'X-Application': self.x_application_id,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Authentication': self.session_token
-        }
-
-        exception = ''
-        try:
-            response = self.__s.post(url=request_url,
-                                     data=json.dumps(data),
-                                     headers=headers)
-        except Exception as e:
-            exception = str(e)
-        return self.__res_parser(exception, response, False)
-
-    def __rest_req(self, operation_name: str, data: dict) -> tuple:
-        request_url = '{}{}/'.format(
-            self.REST_url, operation_name)  #+ '{}'.format(operation_name)
-        headers = {
-            'X-Application': self.x_application_id,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Authentication': self.session_token
-        }
-        rb = data
-        request_body = json.dumps(rb)
-        exception = ''
-        try:
-            response = self.__s.post(url=request_url,
-                                     data=request_body,
-                                     headers=headers)
-        except Exception as e:
-            exception = str(e)
-        return self.__res_parser(exception, response, False)
 
     def get_soccer_event_list(self) -> None:
         print('Getting soccer events list\nPOST - listEvents')
@@ -312,4 +316,8 @@ class BettingAPI(BetFairAPI):
         self.market_book_list = final_output
         print('Found markets from {} events\n{} not founded'.format(
             len(self.market_book_list), len(self.not_founded_market_books)))
-        ...
+
+class BettingAPI(ExchangeAPI):
+
+    def __init__(self, name, password, x_application_id):
+        super().__init__(name, password, x_application_id)
