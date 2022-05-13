@@ -94,13 +94,13 @@ class DataFrameParser(BettingAPI):
                 for runner in mk_list[0]['runners']:
                     for back in runner['ex']['availableToBack']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],back['price'],back['size'],'back']
+                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],float(back['price']),float(back['size']),'back']
                         # print('lay\n {}'.format(df_it2))
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
                     
                     for lay in runner['ex']['availableToLay']:
                         df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],lay['price'],lay['size'],'lay']
+                        df_it2.loc[:,['selection_id','odd','odd_size','odd_type']]=[runner['selectionId'],float(lay['price']),float(lay['size']),'lay']
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
                         # print('back\n {}'.format(df_it2))
             self.df = pd.concat([df_to_concat, self.df], axis=0)
