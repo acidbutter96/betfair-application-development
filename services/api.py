@@ -32,7 +32,7 @@ class BetFairAPI:
             print('User: {} is authenticated'.format(data['username']))
             return None
         if self.__auth['loginStatus']:
-            print('Error: {}'.format(self.__auth['loginStatus']))
+            print(f"Error: {self.__auth['loginStatus']}")
             return None
         print('Authentication failed, verify your credentials and try again')
 
@@ -46,11 +46,10 @@ class BettingAPI(BetFairAPI):
     def __res_parser(exception, response, error_key):
         if exception != '':
             raise Exception(exception)
-            return
         if error_key or response.status_code != 200:
             raise Exception(
-                "Bad request\n response code: {}\n Body response: {}".format(
-                    response.status_code, response.content, exception))
+                f"Bad request: {exception}\n response code: {response.status_code}\n Body response: {response.content}"
+            )
         return response.json(), response.status_code, response.url
 
     @staticmethod
@@ -166,9 +165,9 @@ class BettingAPI(BetFairAPI):
                 self.soccer_events.append(
                     self.__soccer_event_list_builder(event))
         except Exception as e:
-            print('Exception {}'.format(e))
+            print(f"Exception {e}")
             return
-        print('{} events founded'.format(len(self.soccer_events)))
+        print(f"{len(self.soccer_events)} events founded")
 
     def get_competition_list(self, partition=100) -> None:
         print('Getting competition list...')
@@ -212,8 +211,7 @@ class BettingAPI(BetFairAPI):
             else:
                 self.not_found_competition_ids.append(e["id"])
         self.competition_list = final_output
-        print('{} competitions founded\n{} competitions not founded'.format(
-            len(self.competition_list), len(self.not_found_competition_ids)))
+        print(f"{len(self.competition_list)} competitions founded\n{len(self.not_found_competition_ids)} competitions not founded")
 
     def get_market_list(self) -> None:
         print('Getting market catalogue list...')
@@ -262,8 +260,7 @@ class BettingAPI(BetFairAPI):
             else:
                 self.not_founded_market_ids.append(e["id"])
         self.market_catalogue_list = final_output
-        print('Found markets from {} events\n{} not founded'.format(
-            len(self.market_catalogue_list), len(self.not_founded_market_ids)))
+        print(f"Found markets from {len(self.market_catalogue_list)} events\n{len(self.not_founded_market_ids)} not founded")
 
         pass
 
@@ -274,7 +271,10 @@ class BettingAPI(BetFairAPI):
         # y['marketId'] for y in x['list'] for x in self.market_catalogue_list
         for x in self.market_catalogue_list:
             for y in x['list']:
-                market_id_list.append(y['marketId'])
+                market_id_list.append({
+                    'market_id':y['marketId'],
+                    'market_name':y['marketName']
+                    })
 
         markets_lenght = len(market_id_list)
         request_list = []
@@ -285,12 +285,12 @@ class BettingAPI(BetFairAPI):
                 "jsonrpc": "2.0",
                 "method": "SportsAPING/v1.0/listMarketBook",
                 "params": {
-                    "marketIds": [id],
+                    "marketIds": [id['market_id']],
                     "priceProjection": {
                         "priceData":["EX_ALL_OFFERS"],
                     }                   
                 },
-                "id": id,
+                "id": f"{id['market_id']}-{id['market_id']}",
             }
 
         N = int(markets_lenght / partition)
@@ -321,6 +321,4 @@ class BettingAPI(BetFairAPI):
                 self.not_founded_market_books.append(e["id"])
         self.market_book_list = final_output
         end = time.time()
-        print('Found markets from {} events\n{} not founded\n Processed in {}s'.format(
-            len(self.market_book_list), len(self.not_founded_market_books),round(end-start,1)))
-        None
+        print(f"Found markets from {len(self.market_book_list)} events\n{len(self.not_founded_market_books)} not founded\n Processed in {round(end-start,1)}s")
