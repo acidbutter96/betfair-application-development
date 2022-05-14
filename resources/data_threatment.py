@@ -79,6 +79,7 @@ class DataFrameParser(BettingAPI):
         end = time.time()
         total = int(end - start)
         self.df = df
+        self.first_df_len = self.df.count()[0]
         print('Total time: {} seconds'.format(total))
 
     async def second_cycle(self)->pd.DataFrame:
@@ -89,45 +90,51 @@ class DataFrameParser(BettingAPI):
         self.df['real_odd'] = np.nan
         self.df['odd_type'] = np.nan
         self.df['odd_size'] = np.nan
+        self.df['betname'] = 'N/A'
         self.df['selection_id'] = 'TF'
 
+        self.df_to_concat = self.df.dropna()
+
         async def coroutine_market_processing(mk_list:list):
-            df_to_concat = self.df.dropna()
-            list_lenght = len(mk_list)
-            lil_df = self.df
+            df_to_concat = self.df_to_concat
+            # list_lenght = len(mk_list)
+            lil_df = self.df[:self.first_df_len]
             added_data=0
-            if list_lenght > 0:
-                df_it = lil_df[lil_df['market_id']==mk_list[0]['marketId']]
-                for runner in mk_list[0]['runners']:
-                    for back in runner['ex']['availableToBack']:
-                        odd = round(float(back['price']),2)
-                        size = round(float(back['size']),2)
-                        real_odd = self.real_odd(odd)
-                        if real_odd < odd:
-                            added_data+=1
-                            df_it2 = df_it[df_it['selection_id']=='TF']
-                            df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
-                                                        odd,real_odd,size,'back']
+            df_it = lil_df[lil_df['market_id']==mk_list['market_id']]
+            # print('num runners {}'.format(len(mk_list['runners'])))
+            for runner in mk_list['runners']:
+                # print('num av back {}'.format(len(runner['ex']['availableToBack'])))
+                # print('num av lay {}'.format(len(runner['ex']['availableToLay'])))
+                # print('num selection {}\n\n'.format(runner['selectionId']))
+                for back in runner['ex']['availableToBack']:
+                    odd = round(float(back['price']),2)
+                    size = round(float(back['size']),2)
+                    real_odd = self.real_odd(odd)
+                    if real_odd < odd:
+                        added_data+=1
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
+                                                    odd,real_odd,size,'back']
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                    
-                    for lay in runner['ex']['availableToLay']:
-                        odd = float(lay['price'])
-                        size = float(lay['size'])
-                        real_odd = self.real_odd(odd)
-                        if real_odd < odd:
-                            added_data+=1
-                            df_it2 = df_it[df_it['selection_id']=='TF']
-                            df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
-                                                            odd, real_odd, size,'lay']
-                        df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
+                
+                for lay in runner['ex']['availableToLay']:
+                    odd = float(lay['price'])
+                    size = float(lay['size'])
+                    real_odd = self.real_odd(odd)
+                    if real_odd < odd:
+                        added_data+=1
+                        df_it2 = df_it[df_it['selection_id']=='TF']
+                        df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
+                                                        odd, real_odd, size,'lay']
+                        df_to_concat = pd.concat([df_to_concat,df_it2], axis=0)
+                        df_to_concat = df_to_concat.sort_values(['odd_type', 'selection_id'])
             if added_data>=1:
-                self.df = pd.concat([df_to_concat, self.df], axis=0)
+                self.df = pd.concat([self.df,df_to_concat], axis=0)
 
         tasks = []
         print('Starting create coroutines with asyncio')
         for mk in self.market_book_list:
-            mk_list = mk['list']
-            tasks.append(asyncio.create_task(coroutine_market_processing(mk_list)))
+            tasks.append(asyncio.create_task(coroutine_market_processing(mk)))
         await asyncio.gather(*tasks)
         print('Data processed...\nCleaning empty data')
 

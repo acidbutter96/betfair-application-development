@@ -100,10 +100,19 @@ class BettingAPI(BetFairAPI):
         return data
 
     @staticmethod
-    def __market_list_builder(runner, id) -> dict:
+    def __market_book_builder(runner, id) -> dict:
         data = {}
-        data["event_id"] = id
-        data["list"] = runner
+        data["market_id"] = id
+        data["status"] = runner["status"]
+        data["inplay"] = runner["inplay"]
+        data["numberOfActiveRunners"] = runner["numberOfActiveRunners"]
+        data["totalAvailable"] = runner["totalAvailable"]
+        # data["totalMatched"] = runner["totalMatched"]
+        # data["numberOfWinners"] = runner["numberOfWinners"]
+        # data["complete"] = runner["complete"]
+        # data["crossMatching"] = runner["crossMatching"]
+        data["runners"] = runner["runners"]
+        # data["list"] = runner
         return data
 
     def __init__(self, name, password, x_application_id):
@@ -161,7 +170,7 @@ class BettingAPI(BetFairAPI):
             return
         print('{} events founded'.format(len(self.soccer_events)))
 
-    def get_competition_list(self) -> None:
+    def get_competition_list(self, partition=100) -> None:
         print('Getting competition list...')
         event_ids_list = [x["event_id"] for x in self.soccer_events]
         events_lenght = len(event_ids_list)
@@ -182,15 +191,14 @@ class BettingAPI(BetFairAPI):
             }
 
         #make json rpc request
-        N = int(events_lenght / 100)
-        N2 = events_lenght - N * 100
+        N = int(events_lenght / partition)
+        N2 = events_lenght - N * partition
         for n in range(N):
-            request_list.append([output_list(x) for x in event_ids_list[:100]])
-            event_ids_list = event_ids_list[100:]
-
-        if len(event_ids_list) == N2:
+            request_list.append([output_list(x) for x in event_ids_list[:partition]])
+            event_ids_list = event_ids_list[partition:]
+        if len(event_ids_list) == N2 and N2!=0:
             request_list.append([output_list(x) for x in event_ids_list])
-
+        i=0
         for group in request_list:
             aux_response = []
             res = self.__json_rpc_req(group)[0]
@@ -235,7 +243,7 @@ class BettingAPI(BetFairAPI):
                 [output_list(id) for id in event_ids_list[:100]])
             event_ids_list = event_ids_list[100:]
 
-        if len(event_ids_list) == N2:
+        if len(event_ids_list) == N2 and N2 != 0:
             request_list.append([output_list(id) for id in event_ids_list])
 
         for group in request_list:
@@ -259,7 +267,7 @@ class BettingAPI(BetFairAPI):
 
         pass
 
-    def get_market(self) -> None:
+    def get_market(self,partition=200) -> None:
         start = time.time()
         print('Getting market list...')
         market_id_list = []
@@ -285,14 +293,14 @@ class BettingAPI(BetFairAPI):
                 "id": id,
             }
 
-        N = int(markets_lenght / 100)
-        N2 = markets_lenght - N * 100
+        N = int(markets_lenght / partition)
+        N2 = markets_lenght - N * partition
 
         for n in range(N):
             request_list.append(
-                [output_list(id) for id in market_id_list[:100]])
-            market_id_list = market_id_list[100:]
-        if len(market_id_list) == N2:
+                [output_list(id) for id in market_id_list[:partition]])
+            market_id_list = market_id_list[partition:]
+        if len(market_id_list) == N2  and N2 != 0:
             request_list.append([output_list(id) for id in market_id_list])
 
         self.teste = request_list
@@ -308,11 +316,11 @@ class BettingAPI(BetFairAPI):
 
             if len(e['result']) != 0:
                 final_output.append(
-                    self.__market_list_builder(e["result"], e["id"]))
+                    self.__market_book_builder(e["result"][0], e["id"]))
             else:
                 self.not_founded_market_books.append(e["id"])
         self.market_book_list = final_output
         end = time.time()
         print('Found markets from {} events\n{} not founded\n Processed in {}s'.format(
             len(self.market_book_list), len(self.not_founded_market_books),round(end-start,1)))
-        ...
+        None
