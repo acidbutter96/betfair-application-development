@@ -270,6 +270,9 @@ class BettingAPI(BetFairAPI):
         request_list = []
         output = []
 
+        print(markets_lenght)
+
+
         def output_list(id):
             return {
                 "jsonrpc": "2.0",
@@ -283,18 +286,21 @@ class BettingAPI(BetFairAPI):
                 "id": id,
             }
 
-        N = int(markets_lenght / 100)
-        N2 = markets_lenght - N * 100
+        N = int(markets_lenght / 250)
+        N2 = markets_lenght - N * 250
+
+        print(N)
+        print(N2)
 
         for n in range(N):
             request_list.append(
                 [output_list(id) for id in market_id_list[:100]])
             market_id_list = market_id_list[100:]
-
         if len(market_id_list) == N2:
             request_list.append([output_list(id) for id in market_id_list])
-        self.teste = request_list
+        print(len(request_list))
         for group in request_list:
+            print('aqui')
             res = self.__json_rpc_req(group)[0]
             output = [*output, *res]
             """self.request_market_list = request_list
