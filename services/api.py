@@ -101,7 +101,7 @@ class BettingAPI(BetFairAPI):
     @staticmethod
     def __market_book_builder(runner, id) -> dict:
         data = {}
-        data["market_id"] = id
+        data["market_name_id"] = id
         data["status"] = runner["status"]
         data["inplay"] = runner["inplay"]
         data["numberOfActiveRunners"] = runner["numberOfActiveRunners"]
