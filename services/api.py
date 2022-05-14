@@ -1,5 +1,6 @@
 import json
 import os
+import time
 
 import requests
 from numpy import outer
@@ -259,6 +260,7 @@ class BettingAPI(BetFairAPI):
         pass
 
     def get_market(self) -> None:
+        start = time.time()
         print('Getting market list...')
         market_id_list = []
         # y['marketId'] for y in x['list'] for x in self.market_catalogue_list
@@ -269,9 +271,6 @@ class BettingAPI(BetFairAPI):
         markets_lenght = len(market_id_list)
         request_list = []
         output = []
-
-        print(markets_lenght)
-
 
         def output_list(id):
             return {
@@ -286,11 +285,8 @@ class BettingAPI(BetFairAPI):
                 "id": id,
             }
 
-        N = int(markets_lenght / 250)
-        N2 = markets_lenght - N * 250
-
-        print(N)
-        print(N2)
+        N = int(markets_lenght / 100)
+        N2 = markets_lenght - N * 100
 
         for n in range(N):
             request_list.append(
@@ -298,9 +294,9 @@ class BettingAPI(BetFairAPI):
             market_id_list = market_id_list[100:]
         if len(market_id_list) == N2:
             request_list.append([output_list(id) for id in market_id_list])
-        print(len(request_list))
+
+        self.teste = request_list
         for group in request_list:
-            print('aqui')
             res = self.__json_rpc_req(group)[0]
             output = [*output, *res]
             """self.request_market_list = request_list
@@ -316,6 +312,7 @@ class BettingAPI(BetFairAPI):
             else:
                 self.not_founded_market_books.append(e["id"])
         self.market_book_list = final_output
-        print('Found markets from {} events\n{} not founded'.format(
-            len(self.market_book_list), len(self.not_founded_market_books)))
+        end = time.time()
+        print('Found markets from {} events\n{} not founded\n Processed in {}s'.format(
+            len(self.market_book_list), len(self.not_founded_market_books),round(end-start,1)))
         ...
