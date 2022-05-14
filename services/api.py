@@ -267,30 +267,30 @@ class BettingAPI(BetFairAPI):
     def get_market(self,partition=200) -> None:
         start = time.time()
         print('Getting market list...')
-        market_id_list = []
+        market_list = []
         # y['marketId'] for y in x['list'] for x in self.market_catalogue_list
         for x in self.market_catalogue_list:
             for y in x['list']:
-                market_id_list.append({
+                market_list.append({
                     'market_id':y['marketId'],
                     'market_name':y['marketName']
                     })
 
-        markets_lenght = len(market_id_list)
+        markets_lenght = len(market_list)
         request_list = []
         output = []
 
-        def output_list(id):
+        def output_list(market):
             return {
                 "jsonrpc": "2.0",
                 "method": "SportsAPING/v1.0/listMarketBook",
                 "params": {
-                    "marketIds": [id['market_id']],
+                    "marketIds": [market['market_id']],
                     "priceProjection": {
                         "priceData":["EX_ALL_OFFERS"],
                     }                   
                 },
-                "id": f"{id['market_id']}-{id['market_id']}",
+                "id": f"{market['market_name']}-{market['market_id']}",
             }
 
         N = int(markets_lenght / partition)
@@ -298,10 +298,10 @@ class BettingAPI(BetFairAPI):
 
         for n in range(N):
             request_list.append(
-                [output_list(id) for id in market_id_list[:partition]])
-            market_id_list = market_id_list[partition:]
-        if len(market_id_list) == N2  and N2 != 0:
-            request_list.append([output_list(id) for id in market_id_list])
+                [output_list(id) for id in market_list[:partition]])
+            market_list = market_list[partition:]
+        if len(market_list) == N2  and N2 != 0:
+            request_list.append([output_list(market) for market in market_list])
 
         self.teste = request_list
         for group in request_list:
