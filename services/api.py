@@ -290,7 +290,7 @@ class BettingAPI(BetFairAPI):
                         "priceData":["EX_ALL_OFFERS"],
                     }                   
                 },
-                "id": f"{market['market_name']}-{market['market_id']}",
+                "id": f"{market['market_name']}_~_{market['market_id']}",
             }
 
         N = int(markets_lenght / partition)

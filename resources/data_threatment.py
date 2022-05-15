@@ -90,7 +90,7 @@ class DataFrameParser(BettingAPI):
         self.df['real_odd'] = np.nan
         self.df['odd_type'] = np.nan
         self.df['odd_size'] = np.nan
-        self.df['betname'] = 'N/A'
+        self.df['bet_name'] = 'N/A'
         self.df['selection_id'] = 'TF'
 
         self.df_to_concat = self.df.dropna()
@@ -100,36 +100,64 @@ class DataFrameParser(BettingAPI):
             # list_lenght = len(mk_list)
             lil_df = self.df[:self.first_df_len]
             added_data=0
-            df_it = lil_df[lil_df['market_id']==mk_list['market_id']]
-            # print('num runners {}'.format(len(mk_list['runners'])))
+            [market_name,market_id] = mk_list['market_name_id'].split('_~_')
+            df_it = lil_df[lil_df['market_id']==market_id]
+            splited_name = market_name.split('Over/Under')
+            is_over_under = len(splited_name)>=2
+
+            def under_over_setence(i)->str:
+                if is_over_under and i==0:
+                    return f"Over {splited_name[1][1:]}"
+                if is_over_under and i==1:
+                    return f"Under {splited_name[1][1:]}"
+
             for runner in mk_list['runners']:
-                # print('num av back {}'.format(len(runner['ex']['availableToBack'])))
-                # print('num av lay {}'.format(len(runner['ex']['availableToLay'])))
-                # print('num selection {}\n\n'.format(runner['selectionId']))
+                i=0
                 for back in runner['ex']['availableToBack']:
+                    i+=1
                     odd = round(float(back['price']),2)
                     size = round(float(back['size']),2)
                     real_odd = self.real_odd(odd)
+                    if is_over_under:
+                        bet_name = under_over_setence(i)
+                    else:
+                        bet_name = market_name
                     if real_odd < odd:
                         added_data+=1
-                        df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id','odd','real_odd','odd_size','odd_type']]=[runner['selectionId'],
-                                                    odd,real_odd,size,'back']
+                        df_it2 = df_it[df_it['selection_id'] == 'TF']
+                        
+                        df_it2.loc[:,['selection_id','odd',
+                                        'real_odd','odd_size',
+                                        'odd_type','bet_name']] = [
+                                            runner['selectionId'],odd,
+                                            real_odd,size,
+                                            'back',bet_name]
                         df_to_concat = pd.concat([df_it2, df_to_concat], axis=0)
-                
+                i=0
                 for lay in runner['ex']['availableToLay']:
                     odd = float(lay['price'])
                     size = float(lay['size'])
                     real_odd = self.real_odd(odd)
+                    if is_over_under:
+                        bet_name = under_over_setence(i)
+                    else:
+                        bet_name = market_name
                     if real_odd < odd:
                         added_data+=1
                         df_it2 = df_it[df_it['selection_id']=='TF']
-                        df_it2.loc[:,['selection_id', 'odd', 'real_odd','odd_size', 'odd_type']] = [runner['selectionId'],
-                                                        odd, real_odd, size,'lay']
+                        df_it2.loc[:,['selection_id', 'odd',
+                                        'real_odd','odd_size',
+                                        'odd_type','bet_name']] = [
+                                            runner['selectionId'],odd,
+                                            real_odd, size,
+                                            'lay',bet_name]
                         df_to_concat = pd.concat([df_to_concat,df_it2], axis=0)
                         df_to_concat = df_to_concat.sort_values(['odd_type', 'selection_id'])
             if added_data>=1:
                 self.df = pd.concat([self.df,df_to_concat], axis=0)
+            
+            partial_time = time.time()
+            print(f"getting runner {market_id} in {round(partial_time - start,2)}s",end="\r")
 
         tasks = []
         print('Starting create coroutines with asyncio')
@@ -139,6 +167,10 @@ class DataFrameParser(BettingAPI):
         print('Data processed...\nCleaning empty data')
 
         self.df = self.df[self.df['selection_id'] != 'TF']
+        self.df.drop_duplicates(inplace=True)
+        self.df.sort_values(['event_id', 'selection_id','bet_name'],inplace=True)
+        self.df.reset_index(drop=True, inplace=True)
+
         end = time.time()
         print('Processed in {}'.format(end-start))
         return None
