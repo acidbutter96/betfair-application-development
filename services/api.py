@@ -23,7 +23,8 @@ class BetFairAPI:
         }
         data = {'username': name, 'password': password}
 
-        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
+        self.__s.cert = ('./certs/client-2048.crt',
+            './certs/client-2048.pem')
         r = self.__s.post(url=url, data=data, headers=headers)
         self.__auth = r.json()
 
@@ -32,9 +33,10 @@ class BetFairAPI:
             print('User: {} is authenticated'.format(data['username']))
             return None
         if self.__auth['loginStatus']:
-            print(f"Error: {self.__auth['loginStatus']}")
+            raise Exception(f"API Error: {self.__auth['loginStatus']}")
             return None
-        print('Authentication failed, verify your credentials and try again')
+        raise Exception('Authentication failed, verify your credentials and\
+                    try again')
 
 
 class BettingAPI(BetFairAPI):

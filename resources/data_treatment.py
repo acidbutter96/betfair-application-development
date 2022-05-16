@@ -6,9 +6,10 @@ import warnings
 import numpy as np
 import pandas as pd
 from pandas.core.common import SettingWithCopyWarning
+from services.api import BettingAPI
+from utils.chronos import chronometer
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
-from services.api import BettingAPI
 
 
 class DataFrameParser(BettingAPI):
@@ -19,10 +20,11 @@ class DataFrameParser(BettingAPI):
 
     def __init__(self, name, password, x_application_id):
         super().__init__(name, password, x_application_id)
+
         try:
             os.mkdir(f"{os.getcwd()}/output")
         except OSError:
-            print(f"The directory output couldn't be create, try again or create it manually in root directory")
+            print(f"The output directory already exists or couldn't be created")
 
         self.get_soccer_event_list()
         self.get_competition_list()
@@ -66,11 +68,11 @@ class DataFrameParser(BettingAPI):
             else:
                 df.loc[i, 'competition_name'] = 'N/A'
                 df.loc[i, 'competition_id'] = 'N/A'
-            print(f"Processing from {i} in {round(time.time()-start,1)}s", end="\r")
-        print(f"Processed in {round(time.time()-start)}s")
+            print(f"Processing from {i} in {chronometer(start)}", end="\r")
+        print(f"Processed in {chronometer(start)}\n")
 
         #create new rows with the market
-        print("Creating market rows...")
+        print("Creating market rows...\n")
         for e in self.market_catalogue_list:
             list_lenght = len(e['list'])
             if list_lenght > 0:
@@ -85,20 +87,18 @@ class DataFrameParser(BettingAPI):
                 df_it.loc[:, 'market_id'] = 'NF'
                 df_it.loc[:, 'market_total_matched'] = 'NF'
                 df = pd.concat([df_it, df], axis=0)
-            print(f"Processing from {e['event_id']} in {round(time.time()-start,1)}s", end="\r")
-        print(f"Processed in {round(time.time()-start)}s")
+            print(f"Processing from {e['event_id']} in {chronometer(start)}", end="\r")
+        print(f"\nProcessed in {chronometer(start)}\n")
         df = df[df['market_name'] != 'TF']
 
         df = df.sort_values(['event_id', 'market_name'])
         df.reset_index(drop=True, inplace=True)
-        end = time.time()
-        total = round(int(end - start),1)
         self.df = df
         self.first_df_len = self.df.count()[0]
-        print(f"Total time: {total} seconds")
+        print(f"Total time: {chronometer(start)}")
 
     async def second_cycle(self)->pd.DataFrame:
-        print('Entering at the second treatment data cycle')
+        print('\nEntering at the second treatment data cycle\n')
         start = time.time()
 
         self.df['odd'] = np.nan
@@ -171,8 +171,7 @@ class DataFrameParser(BettingAPI):
             if added_data>=1:
                 self.df = pd.concat([self.df,df_to_concat], axis=0)
             
-            partial_time = time.time()
-            print(f"getting runner {market_id} in {round(partial_time - start,2)}s",end="\r")
+            print(f"getting runner {market_id} in {chronometer(start)}",end="\r")
 
         tasks = []
         print('Starting create coroutines with asyncio')
@@ -188,7 +187,7 @@ class DataFrameParser(BettingAPI):
         self.df.reset_index(drop=True, inplace=True)
 
         end = time.time()
-        print(f"Processed in {format(end-start)}")
+        print(f"Processed in {chronometer(end-start)}")
         self.to_csv()
         print(f"Saved as {self.outputname}")
 
