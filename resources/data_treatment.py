@@ -1,8 +1,13 @@
 import asyncio
+import os
 import time
+import warnings
 
 import numpy as np
 import pandas as pd
+from pandas.core.common import SettingWithCopyWarning
+
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 from services.api import BettingAPI
 
 
@@ -12,8 +17,13 @@ class DataFrameParser(BettingAPI):
     def real_odd(odd:float)->float:
         return round(odd-5*(odd-1)*10**-2,2)
 
-    def __init__(self):
-        super().__init__('marcosp199610', 'Mmm.415263', 'IJE2hh59JFLsqo1Z')
+    def __init__(self, name, password, x_application_id):
+        super().__init__(name, password, x_application_id)
+        try:
+            os.mkdir(f"{os.getcwd()}/output")
+        except OSError:
+            print(f"The directory output couldn't be create, try again or create it manually in root directory")
+
         self.get_soccer_event_list()
         self.get_competition_list()
         self.get_market_list()
@@ -36,7 +46,6 @@ class DataFrameParser(BettingAPI):
         #create competition_name, competition_id columns filled with TF that means To Find
         df['competition_name'] = 'TF'
         df['competition_id'] = 'TF'
-        df['betname'] = 'TF'
         # betname == market name ??
         df['market_name'] = 'TF'
         df['market_id'] = 'TF'
@@ -46,7 +55,8 @@ class DataFrameParser(BettingAPI):
         for i, row in df.iterrows():
             filter_competition = list(
                 filter(lambda x: x["event_id"] == row['event_id'],
-                       self.competition_list))
+                       self.competition_list)
+                )
             if len(filter_competition) > 0:
                 df.loc[i, 'competition_name'] = filter_competition[0][
                     'competition_name']
@@ -56,8 +66,11 @@ class DataFrameParser(BettingAPI):
             else:
                 df.loc[i, 'competition_name'] = 'N/A'
                 df.loc[i, 'competition_id'] = 'N/A'
+            print(f"Processing from {i} in {round(time.time()-start,1)}s", end="\r")
+        print(f"Processed in {round(time.time()-start)}s")
 
         #create new rows with the market
+        print("Creating market rows...")
         for e in self.market_catalogue_list:
             list_lenght = len(e['list'])
             if list_lenght > 0:
@@ -72,15 +85,17 @@ class DataFrameParser(BettingAPI):
                 df_it.loc[:, 'market_id'] = 'NF'
                 df_it.loc[:, 'market_total_matched'] = 'NF'
                 df = pd.concat([df_it, df], axis=0)
+            print(f"Processing from {e['event_id']} in {round(time.time()-start,1)}s", end="\r")
+        print(f"Processed in {round(time.time()-start)}s")
         df = df[df['market_name'] != 'TF']
 
         df = df.sort_values(['event_id', 'market_name'])
         df.reset_index(drop=True, inplace=True)
         end = time.time()
-        total = int(end - start)
+        total = round(int(end - start),1)
         self.df = df
         self.first_df_len = self.df.count()[0]
-        print('Total time: {} seconds'.format(total))
+        print(f"Total time: {total} seconds")
 
     async def second_cycle(self)->pd.DataFrame:
         print('Entering at the second treatment data cycle')
@@ -108,7 +123,7 @@ class DataFrameParser(BettingAPI):
             def under_over_setence(i)->str:
                 if is_over_under and i==0:
                     return f"Over {splited_name[1][1:]}"
-                if is_over_under and i==1:
+                if is_over_under and i>=1:
                     return f"Under {splited_name[1][1:]}"
 
             for runner in mk_list['runners']:
@@ -168,14 +183,15 @@ class DataFrameParser(BettingAPI):
 
         self.df = self.df[self.df['selection_id'] != 'TF']
         self.df.drop_duplicates(inplace=True)
+        self.df.drop('market_name', axis=1, inplace=True)
         self.df.sort_values(['event_id', 'selection_id','bet_name'],inplace=True)
         self.df.reset_index(drop=True, inplace=True)
 
         end = time.time()
-        print('Processed in {}'.format(end-start))
-        return None
+        print(f"Processed in {format(end-start)}")
+        self.to_csv()
+        print(f"Saved as {self.outputname}")
 
     def to_csv(self):
-        outputname = './output/output-{}.csv'.format(
-            time.strftime("%d-%b-%Y-%H.%M.%S", time.localtime()))
-        self.df.to_csv(outputname, mode='w+')
+        self.outputname:str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
+        self.df.to_csv(self.outputname, mode='w+')
