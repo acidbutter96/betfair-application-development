@@ -6,13 +6,13 @@ import warnings
 import numpy as np
 import pandas as pd
 from pandas.core.common import SettingWithCopyWarning
-from services.api import BettingAPI
+from services.api import ExchangeAPI
 from utils.chronos import chronometer
 
 warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 
-class DataFrameParser(BettingAPI):
+class DataFrameParser(ExchangeAPI):
 
     @staticmethod
     def real_odd(odd:float)->float:
