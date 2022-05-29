@@ -8,12 +8,12 @@ from numpy import outer
 
 load_dotenv()
 
-CERTNAME = os.getenv('CERTNAME')
+CERTNAME = os.getenv("CERTNAME")
 
 print(CERTNAME)
 
 class AuthenticationAPI:
-    betfair_url = 'https://api.betfair.com/v1/account'
+    betfair_url = "https://api.betfair.com/v1/account"
     __s = requests.Session()
 
     def __init__(self, name: str, password: str,
@@ -21,13 +21,13 @@ class AuthenticationAPI:
         self.auth_name= name
         self.x_application_id = x_application_id
 
-        url = 'https://identitysso-cert.betfair.com/api/certlogin'
+        url = "https://identitysso-cert.betfair.com/api/certlogin"
         headers = {
-            'X-Application': x_application_id,
-            'Accept': 'application/json',
-            'Content-Type': 'application/x-www-form-urlencoded'
+            "X-Application": x_application_id,
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
-        data = {'username': name, 'password': password}
+        data = {"username": name, "password": password}
 
         self.__s.cert = (f"./certs/{CERTNAME}.crt",
             f"./certs/{CERTNAME}.pem")
@@ -36,28 +36,28 @@ class AuthenticationAPI:
 
         print(self.__auth)
 
-        if self.__auth['loginStatus'] == 'SUCCESS':
-            self.session_token = self.__auth['sessionToken']
-            print('User: {} is authenticated'.format(data['username']))
+        if self.__auth["loginStatus"] == "SUCCESS":
+            self.session_token = self.__auth["sessionToken"]
+            print(f'User: {data["username"]} is authenticated')
             return None
-        if self.__auth['loginStatus']:
-            raise Exception(f"API Error: {self.__auth}")
+        if self.__auth["loginStatus"] == "SUSPENDED":
+            raise Exception(f'API Error: {self.__auth["loginStatus"]}')
             return None
-        raise Exception('Authentication failed, verify your credentials and\
-                    try again')
+        raise Exception("Authentication failed, verify your credentials and\
+                    try again")
 
 class RequestAPI(AuthenticationAPI):
     __s = requests.Session()
-    json_rpc_url = 'https://api.betfair.com/exchange/betting/json-rpc/v1'
-    REST_url = 'https://api.betfair.com/exchange/betting/rest/v1.0/'
+    json_rpc_url = "https://api.betfair.com/exchange/betting/json-rpc/v1"
+    REST_url = "https://api.betfair.com/exchange/betting/rest/v1.0/"
 
     def __init__(self, name, password, x_application_id):
         super().__init__(name, password, x_application_id)
-        self.__s.cert = (f'./certs/{CERTNAME}.crt', f'./certs/{CERTNAME}.pem')
+        self.__s.cert = (f"./certs/{CERTNAME}.crt", f"./certs/{CERTNAME}.pem")
 
     @staticmethod
     def __res_parser(exception, response, error_key):
-        if exception != '':
+        if exception != "":
             raise Exception(exception)
         if error_key or response.status_code != 200:
             raise Exception(
@@ -65,16 +65,16 @@ class RequestAPI(AuthenticationAPI):
             )
         return response.json(), response.status_code, response.url
 
-    def __json_rpc_req(self, data: list) -> tuple:
+    def json_rpc_req(self, data: list) -> tuple:
         request_url = self.json_rpc_url  #+ '{}'.format(operation_name)
         headers = {
-            'X-Application': self.x_application_id,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Authentication': self.session_token
+            "X-Application": self.x_application_id,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "X-Authentication": self.session_token
         }
 
-        exception = ''
+        exception = ""
         try:
             response = self.__s.post(url=request_url,
                                      data=json.dumps(data),
@@ -83,18 +83,17 @@ class RequestAPI(AuthenticationAPI):
             exception = str(e)
         return self.__res_parser(exception, response, False)
 
-    def __rest_req(self, operation_name: str, data: dict) -> tuple:
-        request_url = '{}{}/'.format(
-            self.REST_url, operation_name)  #+ '{}'.format(operation_name)
+    def rest_req(self, operation_name: str, data: dict) -> tuple:
+        request_url = f"{self.REST_url}{operation_name}/" #+ '{}'.format(operation_name)
         headers = {
-            'X-Application': self.x_application_id,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Authentication': self.session_token
+            "X-Application": self.x_application_id,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "X-Authentication": self.session_token
         }
         rb = data
         request_body = json.dumps(rb)
-        exception = ''
+        exception = ""
         try:
             response = self.__s.post(url=request_url,
                                      data=request_body,
@@ -102,9 +101,6 @@ class RequestAPI(AuthenticationAPI):
         except Exception as e:
             exception = str(e)
         return self.__res_parser(exception, response, False)
-
-
-    ...
 
 class ExchangeAPI(RequestAPI):
     @staticmethod
@@ -173,11 +169,11 @@ class ExchangeAPI(RequestAPI):
         super().__init__(name, password, x_application_id)
 
     def get_soccer_event_list(self) -> None:
-        print('Getting soccer events list\nPOST - listEvents')
+        print("Getting soccer events list\nPOST - listEvents")
         data = {"filter": {"eventTypeIds": ["1"]}}
         try:
             self.soccer_events = []
-            for event in self.__rest_req('listEvents', data)[0]:
+            for event in self.rest_req("listEvents", data)[0]:
                 self.soccer_events.append(
                     self.__soccer_event_list_builder(event))
         except Exception as e:
@@ -186,7 +182,7 @@ class ExchangeAPI(RequestAPI):
         print(f"{len(self.soccer_events)} events founded")
 
     def get_competition_list(self, partition=100) -> None:
-        print('Getting competition list...')
+        print("Getting competition list...")
         event_ids_list = [x["event_id"] for x in self.soccer_events]
         events_lenght = len(event_ids_list)
         request_list = []
@@ -216,12 +212,12 @@ class ExchangeAPI(RequestAPI):
         i=0
         for group in request_list:
             aux_response = []
-            res = self.__json_rpc_req(group)[0]
+            res = self.json_rpc_req(group)[0]
             output = [*output, *res]
         self.not_found_competition_ids = []
         final_output = []
         for e in output:
-            if len(e['result']) != 0:
+            if len(e["result"]) != 0:
                 final_output.append(
                     self.__competition_list_builder(e["result"][0], e["id"]))
             else:
@@ -230,7 +226,7 @@ class ExchangeAPI(RequestAPI):
         print(f"{len(self.competition_list)} competitions founded\n{len(self.not_found_competition_ids)} competitions not founded")
 
     def get_market_list(self) -> None:
-        print('Getting market catalogue list...')
+        print("Getting market catalogue list...")
         event_ids_list = [x["event_id"] for x in self.soccer_events]
         events_lenght = len(event_ids_list)
         request_list = []
@@ -262,11 +258,11 @@ class ExchangeAPI(RequestAPI):
 
         for group in request_list:
             aux_response = []
-            res = self.__json_rpc_req(group)[0]
+            res = self.json_rpc_req(group)[0]
             output = [*output, *res]
             """self.request_market_list = request_list
-        self.market = output
-        """
+                self.market = output
+            """
         self.not_founded_market_ids = []
         final_output = []
         for e in output:
@@ -282,14 +278,14 @@ class ExchangeAPI(RequestAPI):
 
     def get_market(self,partition=200) -> None:
         start = time.time()
-        print('Getting market list...')
+        print("Getting market list...")
         market_list = []
-        # y['marketId'] for y in x['list'] for x in self.market_catalogue_list
+        # y["marketId"] for y in x["list"] for x in self.market_catalogue_list
         for x in self.market_catalogue_list:
-            for y in x['list']:
+            for y in x["list"]:
                 market_list.append({
-                    'market_id':y['marketId'],
-                    'market_name':y['marketName']
+                    "market_id":y["marketId"],
+                    "market_name":y["marketName"]
                     })
 
         markets_lenght = len(market_list)
@@ -304,7 +300,15 @@ class ExchangeAPI(RequestAPI):
                     "marketIds": [market['market_id']],
                     "priceProjection": {
                         "priceData":["EX_ALL_OFFERS"],
-                    }                   
+                    },
+                    "marketProjection": [
+                            "COMPETITION",
+                            "EVENT",
+                            "EVENT_TYPE",
+                            "RUNNER_DESCRIPTION",
+                            "RUNNER_METADATA",
+                            "MARKET_START_TIME"
+                    ]                
                 },
                 "id": f"{market['market_name']}_~_{market['market_id']}",
             }
@@ -321,7 +325,7 @@ class ExchangeAPI(RequestAPI):
 
         self.teste = request_list
         for group in request_list:
-            res = self.__json_rpc_req(group)[0]
+            res = self.json_rpc_req(group)[0]
             output = [*output, *res]
             """self.request_market_list = request_list
         self.market = output
@@ -330,7 +334,7 @@ class ExchangeAPI(RequestAPI):
         final_output = []
         for e in output:
 
-            if len(e['result']) != 0:
+            if len(e["result"]) != 0:
                 final_output.append(
                     self.__market_book_builder(e["result"][0], e["id"]))
             else:
@@ -340,7 +344,32 @@ class ExchangeAPI(RequestAPI):
         print(f"Found markets from {len(self.market_book_list)} events\n{len(self.not_founded_market_books)} not founded\n Processed in {round(end-start,1)}s")
 
 class BetAPI(ExchangeAPI):
-    ...
+    @staticmethod
+    def __bet_list_builder(event) -> dict:
+        event_keys = list(event.keys())
+        has_event = event_keys.count("event") == 1
+
+        has_mkt_count = list(event_keys).count("marketCount") == 1
+        data = {}
+
+        if has_event:
+            event_e_keys = list(event["event"].keys())
+            has_country_code = event_e_keys.count("countryCode") == 1
+            data["event_id"] = event["event"]["id"]
+            data["teams_name"] = event["event"]["name"].split(" v ")
+            data["event_timezone"] = event["event"]["timezone"]
+            data["event_open_date"] = event["event"]["openDate"]
+            if has_country_code:
+                data["event_country_code"] = event["event"]["countryCode"]
+            if has_mkt_count:
+                data["event_market_count"] = event["marketCount"]
+        return data
+        ...
+
     def __init__(self, name, password, x_application_id):
-        self.__s.cert = ('./certs/client-2048.crt', './certs/client-2048.pem')
+        self.__s.cert = ("./certs/{CERTNAME}.crt", "./certs/{CERTNAME}.pem")
         super().__init__(name, password, x_application_id)
+    
+    def bet_on(self, bets_list):
+        request = super().json_rpc_req()
+        ...
