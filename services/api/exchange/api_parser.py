@@ -79,14 +79,17 @@ class ApiParser(RequestAPI):
     def __init__(self, name:str, password:str, x_application_id:str):
         super().__init__(name, password, x_application_id)
 
-    def request_list_builder(self, request_list:list, event_ids_list:str, partition:int, endpoint:str, params:dict)->tuple:
+    def request_list_builder(self, request_list:list, to_process_list:str,
+    partition:int, endpoint:str, params:any, new_id:any=None)->tuple:
+        
+        id_parser = lambda id: new_id(id) if new_id!=None else id
+
         request_list.append([self.request_builder(endpoint,
                 params(id),
-                id) for id in event_ids_list[:partition]])
-        event_ids_list = event_ids_list[partition:]
+                id_parser(id)) for id in to_process_list[:partition]])
+        to_process_list = to_process_list[partition:]
 
-        return request_list, event_ids_list
-
+        return request_list, to_process_list
 
     def competition_partition_rpc(self, soccer_events:list, partition:int=100):
         event_ids_list = [x["event_id"] for x in soccer_events]
@@ -98,21 +101,23 @@ class ApiParser(RequestAPI):
         N2 = events_lenght - N * partition
         
         request_list = []
+        not_found_competition_ids = []
+        final_output = []
 
         params = lambda id: {"filter": {"eventIds": [id]}}
 
         for n in range(N):
-            request_list, event_ids_list = self.request_list_builder(request_list, event_ids_list, partition, "listCompetitions", params)
+            request_list, event_ids_list = self.request_list_builder(request_list, event_ids_list,
+            partition, "listCompetitions", params)
     
         if len(event_ids_list) == N2 and N2!=0:
-            request_list, event_ids_list = self.request_list_builder(request_list, event_ids_list, partition, "listCompetitions", params)
-        i=0
+            request_list, event_ids_list = self.request_list_builder(request_list, event_ids_list,
+            partition, "listCompetitions", params)
+
         for group in request_list:
             # aux_response = []
             res = self.json_rpc_req(group)[0]
             output = [*output, *res]
-        not_found_competition_ids = []
-        final_output = []
         for e in output:
             if len(e["result"]) != 0:
                 final_output.append(
@@ -120,7 +125,6 @@ class ApiParser(RequestAPI):
                 )
             else:
                 not_found_competition_ids.append(e["id"])
-
         return final_output, not_found_competition_ids
 
     def market_list_partition_rpc(self, soccer_events:list, partition:int=100):
@@ -146,7 +150,7 @@ class ApiParser(RequestAPI):
                                 "MARKET_START_TIME"
                             ],
                         "maxResults": 1000
-            }
+                }
 
         for n in range(N):
             request_list, event_ids_list = self.request_list_builder(request_list, event_ids_list,
@@ -175,3 +179,51 @@ class ApiParser(RequestAPI):
                 not_founded_market_ids.append(e["id"])
 
         return final_output, not_founded_market_ids
+
+    def market_catalogue_list_partition_rpc(self,  market_catalogue_list, partition:int=100):
+        market_list = []
+        for x in market_catalogue_list:
+            for y in x["list"]:
+                market_list.append({
+                    "market_id":y["marketId"],
+                    "market_name":y["marketName"]
+                    })
+
+        markets_lenght = len(market_list)
+        request_list = []
+        output = []
+        not_founded_market_books = []
+
+        N = int(markets_lenght / partition)
+        N2 = markets_lenght - N * partition
+
+        params = lambda market: {
+                    "marketIds": [market['market_id']],
+                    "priceProjection": {
+                        "priceData":["EX_ALL_OFFERS"],
+                        }               
+                    }
+        id_parser = lambda market: f"{market['market_name']}_~_{market['market_id']}"
+
+        for n in range(N):
+            request_list, market_list = self.request_list_builder(request_list, market_list,
+            partition, "listMarketBook", params, id_parser)
+
+        if len(market_list) == N2  and N2 != 0:
+
+            request_list, market_list = self.request_list_builder(request_list, market_list,
+            partition, "listMarketBook", params, id_parser)
+        self.teste = request_list
+
+        for group in request_list:
+            res = self.json_rpc_req(group)[0]
+            output = [*output, *res]
+        final_output = []
+
+        for e in output:
+            if len(e["result"]) != 0:
+                final_output.append(
+                    self.market_book_builder(e["result"][0], e["id"]))
+            else:
+                not_founded_market_books.append(e["id"])
+        return final_output, not_founded_market_books
