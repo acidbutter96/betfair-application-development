@@ -160,14 +160,10 @@ class ApiParser(RequestAPI):
                     params
                 )
 
-
         for group in request_list:
-            # aux_response = []
             res = self.json_rpc_req(group)[0]
             output = [*output, *res]
-            """self.request_market_list = request_list
-                self.market = output
-            """
+
         not_founded_market_ids = []
         self.outputt = output
         final_output = []
@@ -176,5 +172,6 @@ class ApiParser(RequestAPI):
                 final_output.append(
                     self.market_list_builder(e["result"], e["id"],'i'))
             else:
-                self.not_founded_market_ids.append(e["id"])
-        self.market_catalogue_list = final_output
+                not_founded_market_ids.append(e["id"])
+
+        return final_output, not_founded_market_ids
