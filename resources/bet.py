@@ -1,4 +1,4 @@
-from services.api import BetAPI
+from services.betfair_api import BetAPI
 
 from .data_treatment import DataFrameParser
 

@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 import pandas as pd
-from services.api import ExchangeAPI
+from services.betfair_api import ExchangeAPI
 from utils.chronos import chronometer
 
 from .parsers import DataParser

@@ -4,7 +4,9 @@ from .exchange_parsers import ExchangeParsers
 
 
 class ExchangeAPI(ExchangeParsers):
-    def __init__(self, name, password, x_application_id):
+    def __init__(self, name,
+        password, x_application_id
+    ):
         super().__init__(name, password, x_application_id)
 
     def get_soccer_event_list(self) -> None:

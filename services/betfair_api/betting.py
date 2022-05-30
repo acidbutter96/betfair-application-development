@@ -1,6 +1,5 @@
+from services.betfair_api.exchange_api import ExchangeAPI
 from utils.dotenv import CERTNAME
-
-from .exchange import ExchangeAPI
 
 
 class BetAPI(ExchangeAPI):
@@ -24,10 +23,11 @@ class BetAPI(ExchangeAPI):
             if has_mkt_count:
                 data["event_market_count"] = event["marketCount"]
         return data
-        ...
 
-    def __init__(self, name, password, x_application_id):
-        self.__s.cert = ("./certs/{CERTNAME}.crt", "./certs/{CERTNAME}.pem")
+    def __init__(self, name,
+        password, x_application_id
+    ):
+        self.__s.cert = (f"./certs/{CERTNAME}.crt", "./certs/{CERTNAME}.pem")
         super().__init__(name, password, x_application_id)
     
     def bet_on(self, bets_list):

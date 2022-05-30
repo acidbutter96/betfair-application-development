@@ -1,20 +1,23 @@
-from services.api.exchange.exchange_utils import ExchangeUtils
-from services.api.requests import RequestAPI
+from services.betfair_api.exchange_api.exchange_utils import ExchangeUtils
+from services.betfair_api.requests import RequestAPI
 
 from .exchange_builders import ExchangeBuilders
 
 
 class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
 
-
-    def __init__(self, name:str, password:str, x_application_id:str):
+    def __init__(self, name:str,
+        password:str, x_application_id:str
+    ):
         super(ExchangeBuilders, self).__init__()
         super(RequestAPI, self).__init__(name, password, x_application_id)
         super(ExchangeUtils, self).__init__()
 
-    def request_list_builder(self, request_list:list, to_process_list:str,
-    partition:int, endpoint:str, params:any, new_id:any=None)->tuple:
-        
+    def request_list_builder(self, request_list:list,
+        to_process_list:str,partition:int,
+        endpoint:str, params:any,
+        new_id:any=None
+    )->tuple:
         id_parser = lambda id: new_id(id) if new_id!=None else id
 
         request_list.append([self.request_builder(endpoint,
@@ -24,7 +27,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
 
         return request_list, to_process_list
 
-    def request_partition_controller(self, entry_list:list, partition:int, request:str, params:any, new_id:any=None):
+    def request_partition_controller(self, entry_list:list,
+        partition:int, request:str,
+        params:any, new_id:any=None):
         request_list = []
         N, N2 = self.divisor(entry_list, partition)
 
@@ -42,7 +47,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
 
         return request_list, entry_list
 
-    def process_queue(self, request_list, builder, builder_args_lambda):
+    def process_queue(self, request_list,
+        builder, builder_args_lambda
+    ):
         not_found_ids = []
         output_builder = []
         output = []
@@ -66,7 +73,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
                 print(f"Look after\n {out}")
         return output, not_found_ids
 
-    def competition_partition_rpc(self, soccer_events:list, partition:int=100):
+    def competition_partition_rpc(self, soccer_events:list,
+        partition:int=100
+    ):
         event_ids_list = [x["event_id"] for x in soccer_events]
         
         params = lambda id: {"filter": {"eventIds": [id]}}
@@ -81,7 +90,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
                 self.competition_list_builder,
                 builder_args_lambda=builder_lambda)
 
-    def market_list_partition_rpc(self, soccer_events:list, partition:int=100):
+    def market_list_partition_rpc(self, soccer_events:list,
+        partition:int=100
+    ):
         event_ids_list = [x["event_id"] for x in soccer_events]
 
         params = lambda id: {
@@ -109,7 +120,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
         return self.process_queue(request_list, self.market_list_builder,
                 builder_args_lambda=builder_lambda)
 
-    def market_catalogue_list_partition_rpc(self,  market_catalogue_list, partition:int=100):
+    def market_catalogue_list_partition_rpc(self,  market_catalogue_list,
+        partition:int=100
+        ):
         market_list = []
 
         params = lambda market: {

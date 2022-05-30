@@ -39,7 +39,9 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def market_list_builder(market, id, runners) -> dict:
+    def market_list_builder(market, id,
+        runners
+    ) -> dict:
         data = {}
         data["event_id"] = id
         data["list"] = market
@@ -63,7 +65,9 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def request_builder(endpoint:str, params:dict, id:str):
+    def request_builder(endpoint:str, params:dict,
+        id:str
+    ) -> dict:
             return {
                 "jsonrpc": "2.0",
                 "method": f"SportsAPING/v1.0/{endpoint}",
