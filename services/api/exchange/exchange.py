@@ -85,7 +85,7 @@ class ExchangeAPI(ApiParser):
         #     else:
         #         self.not_founded_market_ids.append(e["id"])
         # self.market_catalogue_list = final_output
-        self.market_catalogue_list, self.not_founded_market_ids = self.market_list_partition_rpc(self.market_catalogue_list, partition)
+        self.market_catalogue_list, self.not_founded_market_ids = self.market_list_partition_rpc(self.soccer_events, partition)
         print(f"Found markets from {len(self.market_catalogue_list)} events\n{len(self.not_founded_market_ids)} not founded")
 
         pass
