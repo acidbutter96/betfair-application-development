@@ -1,9 +1,9 @@
 import time
 
-from .api_parser import ApiParser
+from .exchange_parsers import ExchangeParsers
 
 
-class ExchangeAPI(ApiParser):
+class ExchangeAPI(ExchangeParsers):
     def __init__(self, name, password, x_application_id):
         super().__init__(name, password, x_application_id)
 
@@ -22,22 +22,30 @@ class ExchangeAPI(ApiParser):
 
     def get_competition_list(self, partition:int=100) -> None:
         print("Getting competition list...")
+
         self.competition_list, self.not_found_competition_ids = self.competition_partition_rpc(
             self.soccer_events, partition
         )
+
         print(f"{len(self.competition_list)} competitions founded\
             \n{len(self.not_found_competition_ids)} competitions not founded")
 
     def get_market_list(self, partition=100) -> None:
         print("Getting market catalogue list...")
+
         self.market_catalogue_list, self.not_founded_market_ids = self.market_list_partition_rpc(
             self.soccer_events, partition)
+
         print(f"Found markets from {len(self.market_catalogue_list)} events\
             \n{len(self.not_founded_market_ids)} not founded")
 
     def get_market(self,partition=200) -> None:
         start = time.time()
         print("Getting market list...")
-        self.market_book_list, self.not_founded_market_books = self.market_catalogue_list_partition_rpc(self.market_catalogue_list, partition)
+
+        self.market_book_list, self.not_founded_market_books = self.market_catalogue_list_partition_rpc(
+            self.market_catalogue_list, partition
+        )
         end = time.time()
+
         print(f"Found markets from {len(self.market_book_list)} events\n{len(self.not_founded_market_books)} not founded\n Processed in {round(end-start,1)}s")
