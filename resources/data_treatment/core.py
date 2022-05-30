@@ -1,18 +1,16 @@
 import asyncio
 import os
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
-from pandas.core.common import SettingWithCopyWarning
 from services.api import ExchangeAPI
 from utils.chronos import chronometer
 
-warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
+from .parsers import DataParser
 
 
-class DataFrameParser(ExchangeAPI):
+class DataFrameParser(ExchangeAPI, DataParser):
 
     @staticmethod
     def real_odd(odd:float)->float:
@@ -50,6 +48,7 @@ class DataFrameParser(ExchangeAPI):
         df['competition_id'] = 'TF'
         # betname == market name ??
         df['market_name'] = 'TF'
+        df['runners'] = 'TF'
         df['market_id'] = 'TF'
         df['market_total_matched'] = 'TF'
 
@@ -78,14 +77,17 @@ class DataFrameParser(ExchangeAPI):
             if list_lenght > 0:
                 df_it = df[df['event_id'] == e['event_id']]
                 for item in e['list']:
+                    # print(str(item['runners']))
                     df_it.loc[:, 'market_name'] = item['marketName']
                     df_it.loc[:, 'market_id'] = item['marketId']
                     df_it.loc[:, 'market_total_matched'] = item['totalMatched']
+                    df_it.loc[:, 'runners'] = str(item['runners'])
                     df = pd.concat([df_it, df], axis=0)
             else:
                 df_it.loc[:, 'market_name'] = 'NF'
                 df_it.loc[:, 'market_id'] = 'NF'
                 df_it.loc[:, 'market_total_matched'] = 'NF'
+                df_it.loc[:, 'runners'] = 'NF'
                 df = pd.concat([df_it, df], axis=0)
             print(f"Processing from {e['event_id']} in {chronometer(start)}", end="\r")
         print(f"\nProcessed in {chronometer(start)}\n")
@@ -96,6 +98,11 @@ class DataFrameParser(ExchangeAPI):
         self.df = df
         self.first_df_len = self.df.count()[0]
         print(f"Total time: {chronometer(start)}")
+
+    def market_cycle(self):
+        self.df = self.create_bet_columns(self.df)
+        
+        ...
 
     async def second_cycle(self)->pd.DataFrame:
         print('\nEntering at the second treatment data cycle\n')
