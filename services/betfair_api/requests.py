@@ -1,6 +1,6 @@
 import json
 
-from services.betfair_api.authentication import AuthenticationAPI
+from services.betfair_api.authentication_api import AuthenticationAPI
 
 
 class RequestAPI(AuthenticationAPI):
@@ -9,7 +9,8 @@ class RequestAPI(AuthenticationAPI):
         password, x_application_id
     ):
         super(AuthenticationAPI, self).__init__(name, password,
-                                                x_application_id)
+            x_application_id
+        )
 
     @staticmethod
     def __res_parser(exception, response,

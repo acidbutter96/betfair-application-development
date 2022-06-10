@@ -9,8 +9,8 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
     def __init__(self, name:str,
         password:str, x_application_id:str
     ):
-        super(ExchangeBuilders, self).__init__()
         super(RequestAPI, self).__init__(name, password, x_application_id)
+        super(ExchangeBuilders, self).__init__()
         super(ExchangeUtils, self).__init__()
 
     def request_list_builder(self, request_list:list,

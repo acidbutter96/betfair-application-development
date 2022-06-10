@@ -21,12 +21,12 @@ class AuthenticationAPI(Connector):
         self.__auth = r.json()
         if self.__auth["loginStatus"] == "SUCCESS":
             self.auth_headers = {
-                'X-Application': x_application_id,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-Authentication': self.__auth['sessionToken']
+                "X-Application": x_application_id,
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-Authentication": self.__auth["sessionToken"]
                 }
-            print(f'User: {data["username"]} is authenticated')
+            print(f"User: {data['username']} is authenticated")
             return None
         if self.__auth["loginStatus"] == "SUSPENDED":
             raise Exception(f'API Error: {self.__auth["loginStatus"]}')

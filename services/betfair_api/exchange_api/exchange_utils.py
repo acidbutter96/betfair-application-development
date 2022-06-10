@@ -7,4 +7,3 @@ class ExchangeUtils:
         N2 = list_lenght - N * partition
 
         return N, N2 
-    
