@@ -41,7 +41,7 @@ class ExchangeAPI(ExchangeParsers):
         print(f"Found markets from {len(self.market_catalogue_list)} events\
             \n{len(self.not_founded_market_ids)} not founded")
 
-    def get_market(self,partition=200) -> None:
+    def get_market(self,partition=100) -> None:
         start = time.time()
         print("Getting market list...")
 
@@ -51,3 +51,14 @@ class ExchangeAPI(ExchangeParsers):
         end = time.time()
 
         print(f"Found markets from {len(self.market_book_list)} events\n{len(self.not_founded_market_books)} not founded\n Processed in {round(end-start,1)}s")
+
+    def get_runners(self, partition=100) -> None:
+        start = time.time()
+        print("Getting runners list...")
+
+        self.runners_list, self.not_founded_runners = self.runners_list_partition_rpc(
+            self.market_book_list, partition
+        )
+        end = time.time()
+
+        print(f"Found runners from {len(self.runners_list)} events\n{len(self.not_founded_runners)} not founded\n Processed in {round(end-start,1)}s")
