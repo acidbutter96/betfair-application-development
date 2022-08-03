@@ -14,9 +14,9 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
         super(ExchangeUtils, self).__init__()
 
     def request_list_builder(self, request_list:list,
-        to_process_list:str,partition:int,
-        endpoint:str, params:any,
-        new_id:any=None
+        to_process_list: str,partition: int,
+        endpoint: str, params: any,
+        new_id: any=None
     )->tuple:
         id_parser = lambda id: new_id(id) if new_id!=None else id
 
@@ -47,7 +47,7 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
 
         return request_list, entry_list
 
-    def process_queue(self, request_list,
+    def process_queue(self, request_list: list,
         builder, builder_args_lambda
     ):
         not_found_ids = []
@@ -73,8 +73,8 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
                 print(f"Look after\n {out}")
         return output, not_found_ids
 
-    def competition_partition_rpc(self, soccer_events:list,
-        partition:int=100
+    def competition_partition_rpc(self, soccer_events: list,
+        partition: int=100
     ):
         event_ids_list = [x["event_id"] for x in soccer_events]
         
@@ -90,8 +90,8 @@ class ExchangeParsers(RequestAPI, ExchangeBuilders, ExchangeUtils):
                 self.competition_list_builder,
                 builder_args_lambda=builder_lambda)
 
-    def market_list_partition_rpc(self, soccer_events:list,
-        partition:int=100
+    def market_list_partition_rpc(self, soccer_events: list,
+        partition: int=100
     ):
         event_ids_list = [x["event_id"] for x in soccer_events]
 

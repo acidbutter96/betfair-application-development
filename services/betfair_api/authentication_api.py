@@ -5,7 +5,7 @@ class AuthenticationAPI(Connector):
     def __init__(self, name: str,
         password: str, x_application_id: str
     ) -> None:
-        self.auth_name= name
+        self.auth_name = name
 
         super().__init__()
 
