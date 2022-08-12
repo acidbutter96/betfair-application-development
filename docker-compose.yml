@@ -1,0 +1,36 @@
+version: '3.1'
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  redis:
+    image: redis
+    command: redis-server --requirepass SUASENHA --appendonly yes
+    hostname: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - /home/duducp/Redis:/var/lib/postgresql/data
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - 8003:8001
+    #port: 8003:8001
+    # mongo-express:
+    #   image: mongo-express
+    #   restart: always
+    #   ports:
+    #     - 8081:8081
+    #   environment:
+    #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+    #     ME_CONFIG_MONGODB_ADMINPASSWORD: 123456
+    #     ME_CONFIG_MONGODB_URL: mongodb://root:123456@mongo:27017/
+
+

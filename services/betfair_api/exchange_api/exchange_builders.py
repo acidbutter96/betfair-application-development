@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 class ExchangeBuilders:
     @staticmethod
     def soccer_event_list_builder(event) -> dict:
@@ -40,8 +43,8 @@ class ExchangeBuilders:
 
     @staticmethod
     def market_list_builder(market, id,
-        runners
-    ) -> dict:
+                            runners
+                            ) -> dict:
         data = {}
         data["event_id"] = id
         data["list"] = market
@@ -65,14 +68,25 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def request_builder(endpoint:str, params:dict,
-        id:str
-    ) -> dict:
-            return {
-                "jsonrpc": "2.0",
-                "method": f"SportsAPING/v1.0/{endpoint}",
-                "params": {
-                    **params
-                },
-                "id": id
-            }
+    def runner_list_builder(runner: Dict, market_id: str) -> Dict[str, str]:
+        data = {}
+        data["selection_id"] = runner["selectionId"]
+        data["runner_name"] = runner["runnerName"]
+        data["market_id"] = market_id
+        # data["sort_priority"] = runner["sortPriority"]
+        # data["metadata"] = runner["metadata"]
+
+        return data
+
+    @staticmethod
+    def request_builder(endpoint: str, params: dict,
+                        id: str
+                        ) -> dict:
+        return {
+            "jsonrpc": "2.0",
+            "method": f"SportsAPING/v1.0/{endpoint}",
+            "params": {
+                **params
+            },
+            "id": id
+        }
