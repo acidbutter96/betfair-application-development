@@ -1,10 +1,13 @@
+from typing import List
+
+from resources.bet.bet_model import BetBody
 from services.betfair_api.exchange_api import ExchangeAPI
 from utils.dotenv import CERTNAME
 
 
 class BetAPI(ExchangeAPI):
     @staticmethod
-    def __bet_list_builder(event) -> dict:
+    def __bet_list_builder(event: BetBody) -> dict:
         event_keys = list(event.keys())
         has_event = event_keys.count("event") == 1
 
@@ -25,11 +28,12 @@ class BetAPI(ExchangeAPI):
         return data
 
     def __init__(self, name,
-        password, x_application_id
-    ):
+                 password, x_application_id
+                 ):
         self.__s.cert = (f"./certs/{CERTNAME}.crt", "./certs/{CERTNAME}.pem")
         super().__init__(name, password, x_application_id)
-    
-    def bet_on(self, bets_list):
+
+    def bet_on(self, bet_list: List[BetBody]):
+        data = [self._bet_list_builder(x) for x in bet_list]
         request = super().json_rpc_req()
         ...

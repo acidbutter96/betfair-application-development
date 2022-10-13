@@ -9,20 +9,40 @@ from .bet_model import *
 
 class Bet(BetAPI):
     @staticmethod
-    def bet_body_builder(data: pd.DataFrame) -> List[BetBody]:
+    def bet_body_builder(
+        data: pd.DataFrame, side: str,
+        order_type: str,
+        handicap: str, size: str,
+        price: str, persistence_type: str = "LAPSE",
+    ) -> List[BetBody]:
         result: List[BetBody] = []
         for i, row in data.iterrows():
-            market_id, selection_id = '', ''
+            market_id = 'market_id'
+            selection_id = 'selection_id'
             result.append(BetBody(
                 market_id=market_id,
                 instructions=BetInstructions(
-
+                    handicap=handicap, side=side,
+                    order_type=order_type, limit_order=LimitOrder(
+                        size=size, price=price,
+                        persistence_type=persistence_type
+                    )
                 )
             ))
+        return result
 
     def __init__(self,):
         self.dataframe = DataFrameParser()
         self.df = self.dataframe.df
 
-    def create_bets(self, ):
-        ...
+    def create_bets(
+        self, size: str,
+        price: str, persistence_type: str,
+        side: str, order_type: str = "LIMIT",
+        handicap: str = "0",
+    ):
+        bet_list = self.bet_body_builder(
+            side=side, order_type=order_type, handicap=handicap,
+            size=size, price=price,
+            persistence_type=persistence_type, data=self.df,
+        )

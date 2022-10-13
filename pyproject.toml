@@ -30,6 +30,7 @@ yapf = "^0.32.0"
 yarg = "^0.1.9"
 ipython = "^8.4.0"
 celery = {extras = ["redis"], version = "^5.2.7"}
+pydantic = "^1.10.2"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.6.0"

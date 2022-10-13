@@ -1,10 +1,13 @@
-class LimitOrder:
+from pydantic import BaseModel
+
+
+class LimitOrder(BaseModel):
     size: str
     price: str
     persistence_type: str = "LAPSE"
 
 
-class BetInstructions:
+class BetInstructions(BaseModel):
     selection_id: str
     handicap: str
     side: str
@@ -12,6 +15,6 @@ class BetInstructions:
     limit_order: LimitOrder
 
 
-class BetBody:
+class BetBody(BaseModel):
     market_id: str
     instructions: BetInstructions
