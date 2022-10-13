@@ -29,6 +29,7 @@ urllib3 = "^1.26.9"
 yapf = "^0.32.0"
 yarg = "^0.1.9"
 ipython = "^8.4.0"
+celery = {extras = ["redis"], version = "^5.2.7"}
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.6.0"
