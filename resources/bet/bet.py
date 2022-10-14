@@ -31,7 +31,18 @@ class Bet(BetAPI):
             ))
         return result
 
-    def __init__(self,):
+    def __init__(
+        self, side: str,
+        order_type: str, handicap: str,
+        size: str, price: str,
+        persistence_type: str = "LAPSE",
+    ):
+        self.side = side,
+        self.order_type = order_type,
+        self.handicap = handicap,
+        self.size = size,
+        self.price = price,
+        self.persistence_type = persistence_type,
         self.dataframe = DataFrameParser()
         self.df = self.dataframe.df
 
@@ -46,3 +57,4 @@ class Bet(BetAPI):
             size=size, price=price,
             persistence_type=persistence_type, data=self.df,
         )
+        self._

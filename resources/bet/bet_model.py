@@ -16,5 +16,6 @@ class BetInstructions(BaseModel):
 
 
 class BetBody(BaseModel):
+    id: str
     market_id: str
     instructions: BetInstructions
