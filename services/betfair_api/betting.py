@@ -1,8 +1,8 @@
 from typing import Any, Dict, List
 
+from config import config
 from resources.bet.bet_model import BetBody
 from services.betfair_api.exchange_api import ExchangeAPI
-from utils.dotenv import CERTNAME
 
 
 class BetAPI(ExchangeAPI):
@@ -24,7 +24,8 @@ class BetAPI(ExchangeAPI):
         self, name,
         password, x_application_id
     ):
-        self.__s.cert = (f"./certs/{CERTNAME}.crt", "./certs/{CERTNAME}.pem")
+        self.__s.cert = (f"./certs/{config.CERTNAME}.crt",
+                         f"./certs/{config.CERTNAME}.pem")
         super().__init__(name, password, x_application_id)
 
     def bet_on(self, bet_list: List[BetBody]):

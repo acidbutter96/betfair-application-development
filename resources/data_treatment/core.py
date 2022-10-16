@@ -130,7 +130,8 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
                 self.df = pd.concat([self.df, df_to_concat], axis=0)
 
             print(
-                f"getting runner {market_id} in {chronometer(start)}", end="\r")
+                f"getting runner {market_id} in {chronometer(start)}", end="\r"
+            )
 
         tasks = []
         print('Starting create coroutines with asyncio')
@@ -160,7 +161,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
                     self.runners_list
                 )
             )
-            print(f"Total time: {chronometer(start)}")
+            print(f"Total time: {chronometer(start)}", end="\r")
             if len(filter_by_mk_id) == 1:
                 filter_by_selection_id: List[Dict[str, str]] = list(
                     filter(
@@ -175,6 +176,8 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
 
         self.df['runner_name'] = self.df.apply(
             lambda row: set_runner_name(row["market_id"], row["selection_id"]), axis=1)
+
+        print(f"Total time: {chronometer(start)}")
 
         self.to_csv()
         print(f"Saved as {self.outputname}")
