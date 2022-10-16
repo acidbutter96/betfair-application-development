@@ -39,22 +39,22 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.get_market()
 
     def first_cycle(self) -> None:
-        print('Data treatment\n First cycle...')
+        self.logger.info('Data treatment\n First cycle...')
         start = time.time()
         self.df = self.create_soccer_df(
             start, self.soccer_events, self.competition_list,
         )
         # create new rows with the market
-        print("Creating market rows...\n")
+        self.logger.info("Creating market rows...\n")
         self.df = self.add_market_row(
             start, self.market_catalogue_list,
             self.df,
         )
         self.first_df_len = self.df.count()[0]
-        print(f"Total time: {chronometer(start)}")
+        self.logger.info(f"Total time: {chronometer(start)}")
 
     async def second_cycle(self) -> pd.DataFrame:
-        print('\nEntering at the second treatment data cycle\n')
+        self.logger.info('\nEntering at the second treatment data cycle\n')
         start = time.time()
 
         self.df['odd'] = np.nan
@@ -140,11 +140,11 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
             )
 
         tasks = []
-        print('Starting create coroutines with asyncio')
+        self.logger.info('Starting create coroutines with asyncio')
         for mk in self.market_book_list:
             tasks.append(asyncio.create_task(coroutine_market_processing(mk)))
         await asyncio.gather(*tasks)
-        print('Data processed...\nCleaning empty data')
+        self.logger.info('Data processed...\nCleaning empty data')
 
         self.df = self.df[self.df['selection_id'] != 'TF']
         self.df.drop_duplicates(inplace=True)
@@ -154,10 +154,10 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.df.reset_index(drop=True, inplace=True)
 
         end = time.time()
-        print(f"Processed in {chronometer(end-start)}")
+        self.logger.info(f"Processed in {chronometer(end-start)}")
 
     def third_cycle(self):
-        print("Third cycle")
+        self.logger.info("Third cycle")
         start = time.time()
 
         def set_runner_name(market_id: str, selection_id: str | int) -> str:
@@ -167,7 +167,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
                     self.runners_list
                 )
             )
-            print(f"Total time: {chronometer(start)}", end="\r")
+            print(f"{chronometer(start)}", end="\r")
             if len(filter_by_mk_id) == 1:
                 filter_by_selection_id: List[Dict[str, str]] = list(
                     filter(
@@ -183,11 +183,22 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.df['runner_name'] = self.df.apply(
             lambda row: set_runner_name(row["market_id"], row["selection_id"]), axis=1)
 
-        print(f"Total time: {chronometer(start)}")
-
-        self.to_csv()
-        print(f"Saved as {self.outputname}")
+        self.logger.info(f"Total time: {chronometer(start)}")
 
     def to_csv(self):
-        self.outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
-        self.df.to_csv(self.outputname, mode='w+')
+        if self.df:
+            self.outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
+            self.df.to_csv(self.outputname, mode='w+')
+            self.logger.info(f"Saved as {self.outputname}")
+        else:
+            self.logger.info(
+                "You must generate a data frame using api consumption or loading an existing output file - see the load_from_csv method")
+
+    def load_from_csv(self, file_name: str) -> pd.DataFrame:
+        file_workdir = f'./output/{file_name}'
+        try:
+            os.open(file_workdir, os.O_RDONLY)
+            self.df = pd.read_csv(file_workdir, index_col=0)
+            return self.df
+        except Exception as ex:
+            self.logger.exception(f"{ex}")
