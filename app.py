@@ -13,6 +13,7 @@ class BetfairApplication:
         self.logger = Logger().get_logger("Betfair application")
 
     def load_from_api(self,):
+        self.data_frame_parser.get_data_from_api()
         self.data_frame_parser.first_cycle()
         asyncio.run(self.data_frame_parser.second_cycle())
         self.data_frame_parser.third_cycle()

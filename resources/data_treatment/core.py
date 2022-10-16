@@ -5,6 +5,7 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+from config import Logger
 from services.betfair_api import ExchangeAPI
 from utils.chronos import chronometer
 
@@ -20,12 +21,17 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
     def __init__(self, name, password, x_application_id):
         super(ExchangeAPI, self).__init__(name, password, x_application_id)
         super(DataBuilder, self).__init__()
+        self.logger = Logger().get_logger("data_frame_parser_logger")
 
         try:
             os.mkdir(f"{os.getcwd()}/output")
         except OSError:
-            print(f"The output directory already exists or couldn't be created")
+            self.logger.exception(
+                f"The output directory already exists or couldn't be created"
+            )
 
+    def get_data_from_api(self,) -> None:
+        self.logger.info("DataFramePArser.get_data_from_api called")
         self.get_soccer_event_list()
         self.get_competition_list()
         self.get_market_list()
