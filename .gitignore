@@ -140,3 +140,6 @@ output/
 
 # tests for development - not unitary tests
 tests/
+
+# logs
+logs/
