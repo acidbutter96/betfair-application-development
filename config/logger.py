@@ -32,12 +32,12 @@ class Logger:
         self.fileHandler.setFormatter(logFileFormatter)
         self.fileHandler.setLevel(level=logging.INFO)
 
-        self.logStreamFormatter = logging.Formatter(
+        self.log_stream_formatter = logging.Formatter(
             fmt=f"%(levelname)-8s %(asctime)s \t %(filename)s @function %(funcName)s line %(lineno)s - %(message)s",
             datefmt="%H:%M:%S"
         )
         self.consoleHandler = logging.StreamHandler(stream=sys.stdout)
-        self.consoleHandler.setFormatter(self.logStreamFormatter)
+        self.consoleHandler.setFormatter(self.log_stream_formatter)
         self.consoleHandler.setLevel(level=logging.DEBUG)
 
     def get_logger(self, name: str) -> logging.Logger:
