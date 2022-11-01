@@ -20,7 +20,7 @@ class Logger:
         #             format=f"%(levelname)-8s: \t %(filename)s %(funcName)s %(lineno)s - %(message)s"
         #         )
 
-        os.open(f'{os.getcwd()}/{self.file_name}', os.O_CREAT)
+        os.open(f'{os.getcwd()}/logs/{self.file_name}', os.O_CREAT)
 
         logFileFormatter = logging.Formatter(
             fmt=f"%(levelname)s %(asctime)s (%(relativeCreated)d) \t %(pathname)s F%(funcName)s L%(lineno)s - %(message)s",
