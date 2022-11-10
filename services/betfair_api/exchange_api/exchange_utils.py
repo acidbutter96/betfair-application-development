@@ -1,15 +1,9 @@
 from typing import Any, Callable, Dict, TypeGuard
 
+from betfair_api import BetfairApiUtils
 
-class ExchangeUtils:
-    @staticmethod
-    def divisor(entrance_list: list, partition: int) -> tuple[int, int]:
-        list_lenght = len(entrance_list)
 
-        N = int(list_lenght / partition)
-        N2 = list_lenght - N * partition
-
-        return N, N2
+class ExchangeUtils(BetfairApiUtils):
 
     @staticmethod
     def get_runner_name(runner_list, market_id: str, selection_id: int) -> str:

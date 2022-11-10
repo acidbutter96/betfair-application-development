@@ -21,9 +21,8 @@ class Example:
 
 bet_example = Example()
 bet_example.bet_from_table('output-03-Aug-2022-02.54.28.csv')
-bet_example.bet.create_bets_list(
+bet_list = bet_example.bet.create_bets_list(
     handicap='handicap', price='10',
     side='side', size='size',
 )
-bet = bet_example.bet
-print(bet.bet_list)
+print(bet_list)

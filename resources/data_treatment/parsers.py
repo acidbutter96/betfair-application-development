@@ -2,7 +2,6 @@ import json
 from typing import List
 
 import pandas as pd
-from utils.chronos import chronometer
 
 
 class DataParser:
@@ -12,7 +11,3 @@ class DataParser:
             runner.replace("'", "~'~").replace('"', "'")
             .replace("~'~", '"')
         )
-
-    def create_bet_columns(self, df: pd.DataFrame, **kwargs) -> pd.DataFrame:
-        df['']
-        ...

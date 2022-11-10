@@ -1,11 +1,10 @@
-from typing import Dict, List
+from typing import List
 
 import pandas as pd
-from config import config
 from resources.data_treatment import DataFrameParser
 from services.betfair_api import BetAPI
 
-from .bet_model import *
+from .bet_models import *
 
 
 class Bet(BetAPI):
@@ -62,3 +61,4 @@ class Bet(BetAPI):
             size=size, price=price,
             persistence_type=persistence_type, data=self.df,
         )
+        return self.bet_on(self.bet_list)

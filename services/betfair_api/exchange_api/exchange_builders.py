@@ -24,7 +24,9 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def competition_list_builder(competition, id) -> dict:
+    def competition_list_builder(
+        competition, id,
+    ) -> dict:
         comp_keys = list(competition.keys())
         has_comp = comp_keys.count("competition") == 1
         has_mkt_count = comp_keys.count("marketCount") == 1
@@ -42,9 +44,10 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def market_list_builder(market, id,
-                            runners
-                            ) -> dict:
+    def market_list_builder(
+        market, id,
+        runners,
+    ) -> dict:
         data = {}
         data["event_id"] = id
         data["list"] = market
@@ -52,7 +55,9 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def market_book_builder(runner, id) -> dict:
+    def market_book_builder(
+        runner, id,
+    ) -> dict:
         data = {}
         data["market_name_id"] = id
         data["status"] = runner["status"]
@@ -68,7 +73,9 @@ class ExchangeBuilders:
         return data
 
     @staticmethod
-    def runner_list_builder(runner: Dict, market_id: str) -> Dict[str, str]:
+    def runner_list_builder(
+        runner: Dict, market_id: str,
+    ) -> Dict[str, str]:
         data = {}
         data["selection_id"] = runner["selectionId"]
         data["runner_name"] = runner["runnerName"]
@@ -77,16 +84,3 @@ class ExchangeBuilders:
         # data["metadata"] = runner["metadata"]
 
         return data
-
-    @staticmethod
-    def request_builder(endpoint: str, params: dict,
-                        id: str
-                        ) -> dict:
-        return {
-            "jsonrpc": "2.0",
-            "method": f"SportsAPING/v1.0/{endpoint}",
-            "params": {
-                **params
-            },
-            "id": id
-        }
