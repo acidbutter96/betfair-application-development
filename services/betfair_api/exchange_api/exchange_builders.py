@@ -3,7 +3,7 @@ from typing import Dict
 
 class ExchangeBuilders:
     @staticmethod
-    def soccer_event_list_builder(event) -> dict:
+    def soccer_event_list_builder(event) -> Dict:
         event_keys = list(event.keys())
         has_event = event_keys.count("event") == 1
 
@@ -26,7 +26,7 @@ class ExchangeBuilders:
     @staticmethod
     def competition_list_builder(
         competition, id,
-    ) -> dict:
+    ) -> Dict:
         comp_keys = list(competition.keys())
         has_comp = comp_keys.count("competition") == 1
         has_mkt_count = comp_keys.count("marketCount") == 1
@@ -47,7 +47,7 @@ class ExchangeBuilders:
     def market_list_builder(
         market, id,
         runners,
-    ) -> dict:
+    ) -> Dict:
         data = {}
         data["event_id"] = id
         data["list"] = market
@@ -57,7 +57,7 @@ class ExchangeBuilders:
     @staticmethod
     def market_book_builder(
         runner, id,
-    ) -> dict:
+    ) -> Dict:
         data = {}
         data["market_name_id"] = id
         data["status"] = runner["status"]

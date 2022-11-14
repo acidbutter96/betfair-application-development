@@ -9,7 +9,7 @@ class RequestAPI(AuthenticationAPI):
         self, name,
         password, x_application_id
     ):
-        super(AuthenticationAPI, self).__init__(
+        super().__init__(
             name, password,
             x_application_id,
         )

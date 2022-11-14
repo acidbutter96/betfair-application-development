@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict, TypeGuard
 
-from betfair_api import BetfairApiUtils
+from services.betfair_api import BetfairApiUtils
 
 
 class ExchangeUtils(BetfairApiUtils):

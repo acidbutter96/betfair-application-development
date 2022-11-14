@@ -1,6 +1,7 @@
 from typing import Callable, List
 
-from services.betfair_api.bet_api import BetBuilders, BetUtils
+from services.betfair_api.bet_api.bet_builders import BetBuilders
+from services.betfair_api.bet_api.bet_utils import BetUtils
 from services.betfair_api.betfair_parsers import BetfairApiParsers
 
 

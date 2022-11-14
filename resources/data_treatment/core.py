@@ -5,6 +5,7 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
+
 from config import Logger
 from services.betfair_api import ExchangeAPI
 from utils.chronos import chronometer
@@ -154,7 +155,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.df.reset_index(drop=True, inplace=True)
 
         end = time.time()
-        self.logger.info(f"Processed in {chronometer(end-start)}")
+        self.logger.info(f"Processed in {chronometer(start)}")
 
     def third_cycle(self):
         self.logger.info("Third cycle")
@@ -186,7 +187,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.logger.info(f"Total time: {chronometer(start)}")
 
     def to_csv(self):
-        if self.df:
+        if self.df is not None:
             self.outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
             self.df.to_csv(self.outputname, mode='w+')
             self.logger.info(f"Saved as {self.outputname}")
