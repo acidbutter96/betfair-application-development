@@ -30,7 +30,7 @@ class ExchangeAPI(ExchangeParsers):
         )
 
         print(f"{len(self.competition_list)} competitions found\
-            \n{len(self.not_found_competition_ids)} competitions not found")
+\n{len(self.not_found_competition_ids)} competitions not found")
 
     def get_market_list(self, partition=100) -> None:
         print("Getting market catalogue list...")

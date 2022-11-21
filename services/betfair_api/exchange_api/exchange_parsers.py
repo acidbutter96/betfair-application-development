@@ -28,7 +28,7 @@ class ExchangeParsers(BetfairApiParsers, ExchangeBuilders, ExchangeUtils):
             event_ids_list, partition,
             "listCompetitions", params
         )
-        builder_lambda = lambda out: (out['result'][0], out['result'])
+        builder_lambda = lambda out: (out['result'][0], out['id'])
 
         return self.process_queue(
             request_list, self.competition_list_builder,

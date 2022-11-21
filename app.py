@@ -12,14 +12,16 @@ class BetfairApplication:
         )
         self.logger = Logger().get_logger("Betfair application")
 
-    def load_from_api(self,):
+    def load_from_api(self,) -> DataFrameParser:
         self.data_frame_parser.get_data_from_api()
         self.data_frame_parser.first_cycle()
         asyncio.run(self.data_frame_parser.second_cycle())
         self.data_frame_parser.third_cycle()
         self.data_frame_parser.to_csv()
         self.df = self.data_frame_parser.df
+        return self.data_frame_parser
 
-    def load_from_csv(self, file_name: str) -> None:
+    def load_from_csv(self, file_name: str) -> DataFrameParser:
         self.logger.info(f"Loading from ./output/{file_name}")
         self.df = self.data_frame_parser.load_from_csv(file_name)
+        return self.data_frame_parser

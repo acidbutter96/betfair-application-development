@@ -39,7 +39,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.get_runners()
         self.get_market()
 
-    def first_cycle(self) -> None:
+    def first_cycle(self) -> float:
         self.logger.info('Data treatment\n First cycle...')
         start = time.time()
         self.df = self.create_soccer_df(
@@ -53,8 +53,9 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         )
         self.first_df_len = self.df.count()[0]
         self.logger.info(f"Total time: {chronometer(start)}")
+        return start
 
-    async def second_cycle(self) -> pd.DataFrame:
+    async def second_cycle(self) -> float:
         self.logger.info('\nEntering at the second treatment data cycle\n')
         start = time.time()
 
@@ -153,11 +154,10 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.df.sort_values(
             ['event_id', 'selection_id', 'bet_name'], inplace=True)
         self.df.reset_index(drop=True, inplace=True)
-
-        end = time.time()
         self.logger.info(f"Processed in {chronometer(start)}")
+        return start
 
-    def third_cycle(self):
+    def third_cycle(self) -> float:
         self.logger.info("Third cycle")
         start = time.time()
 
@@ -182,9 +182,14 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
             return "Not found"
 
         self.df['runner_name'] = self.df.apply(
-            lambda row: set_runner_name(row["market_id"], row["selection_id"]), axis=1)
+            lambda row: set_runner_name(
+                row["market_id"], row["selection_id"],
+            ),
+            axis=1,
+        )
 
         self.logger.info(f"Total time: {chronometer(start)}")
+        return start
 
     def to_csv(self):
         if self.df is not None:

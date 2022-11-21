@@ -1,5 +1,6 @@
 import pandas as pd
 from pandas import DataFrame
+
 from utils.chronos import chronometer
 
 from .parsers import DataParser
@@ -72,7 +73,9 @@ class DataBuilder(DataParser):
                 df_it.loc[:, 'runners'] = 'NF'
                 df = pd.concat([df_it, df], axis=0)
             print(
-                f"Processing from {e['event_id']} in {chronometer(start)}", end="\r")
+                f"Processing from {e['event_id']} in {chronometer(start)}",
+                end="\r",
+            )
         print(f"\nProcessed in {chronometer(start)}\n")
         df = df[df['market_name'] != 'TF']
 
