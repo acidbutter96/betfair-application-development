@@ -6,7 +6,7 @@ authors = ["Marcos Pereira <marcos.p.10@hotmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 certifi = "^2021.10.8"
 charset-normalizer = "^2.0.12"
 docopt = "^0.6.2"
@@ -31,6 +31,7 @@ yarg = "^0.1.9"
 ipython = "^8.4.0"
 celery = {extras = ["redis"], version = "^5.2.7"}
 pydantic = "^1.10.2"
+openpyxl = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.6.0"

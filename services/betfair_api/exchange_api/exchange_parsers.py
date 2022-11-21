@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Tuple, TypeGuard
+from typing import Any, Callable, Dict, List, Tuple
 
 from services.betfair_api import BetfairApiParsers
 

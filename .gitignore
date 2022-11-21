@@ -143,3 +143,5 @@ tests/
 
 # logs
 logs/
+
+poetry.lock

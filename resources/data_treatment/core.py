@@ -1,7 +1,7 @@
 import asyncio
 import os
 import time
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
             splited_name = market_name.split('Over/Under')
             is_over_under = len(splited_name) >= 2
 
-            def under_over_setence(i) -> str | None:
+            def under_over_setence(i) -> Optional[str]:
                 if is_over_under and i == 0:
                     return f"Over {splited_name[1][1:]}"
                 if is_over_under and i >= 1:
@@ -161,8 +161,8 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
         self.logger.info("Third cycle")
         start = time.time()
 
-        def set_runner_name(market_id: str, selection_id: str | int) -> str:
-            filter_by_mk_id: List[Dict[str, str | List[Dict[str, str]]]] = list(
+        def set_runner_name(market_id: str, selection_id: Any) -> str:
+            filter_by_mk_id: List[Dict[str, Any]] = list(
                 filter(
                     lambda x: x["market_id"] == market_id,
                     self.runners_list
@@ -188,12 +188,23 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
 
     def to_csv(self):
         if self.df is not None:
-            self.outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
-            self.df.to_csv(self.outputname, mode='w+')
-            self.logger.info(f"Saved as {self.outputname}")
+            outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.csv"
+            self.df.to_csv(outputname, mode='w+')
+            self.logger.info(f"Saved as {outputname}")
         else:
             self.logger.info(
-                "You must generate a data frame using api consumption or loading an existing output file - see the load_from_csv method")
+                "You must generate a data frame using api consumption or loading an existing output file - see the load_from_csv method",
+            )
+
+    def to_xlsx(self):
+        if self.df is not None:
+            outputname: str = f"./output/output-{time.strftime('%d-%b-%Y-%H.%M.%S', time.localtime())}.xlsx"
+            self.df.to_excel(outputname)
+            self.logger.info(f"Saved as {outputname}")
+        else:
+            self.logger.info(
+                "You must generate a data frame using api consumption or loading an existing output file - see the load_from_csv method",
+            )
 
     def load_from_csv(self, file_name: str) -> pd.DataFrame:
         file_workdir = f'./output/{file_name}'

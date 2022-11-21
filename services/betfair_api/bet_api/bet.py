@@ -8,7 +8,7 @@ from services.betfair_api.bet_api.bet_parsers import BetParsers
 class BetAPI(BetParsers):
     @staticmethod
     def __bet_list_builder(event: BetBody) -> Dict:
-        data: Dict[str, str | Any] = {
+        data: Dict[str, Any] = {
             "jsonrpc": "2.0",
             "method": "SportsAPING/v1.0/placeOrders",
         }
