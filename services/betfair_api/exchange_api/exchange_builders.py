@@ -79,6 +79,7 @@ class ExchangeBuilders:
         data = {}
         data["selection_id"] = runner["selectionId"]
         data["runner_name"] = runner["runnerName"]
+        data["handicap"] = runner["handicap"]
         data["market_id"] = market_id
         # data["sort_priority"] = runner["sortPriority"]
         # data["metadata"] = runner["metadata"]

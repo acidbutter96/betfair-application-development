@@ -8,12 +8,6 @@ class Logger:
 
     def __init__(self,):
         self.file_name: str = f'{datetime.now().isoformat().split("T")[0]}-logs.log'
-        try:
-            os.mkdir(f"{os.getcwd()}/logs")
-        except OSError:
-            print(
-                f"The output directory already exists or couldn't be created"
-            )
         logging.basicConfig(level=logging.INFO)
         # logging.basicConfig(
         #             level=logging.DEBUG,
@@ -39,6 +33,12 @@ class Logger:
         self.consoleHandler = logging.StreamHandler(stream=sys.stdout)
         self.consoleHandler.setFormatter(self.log_stream_formatter)
         self.consoleHandler.setLevel(level=logging.DEBUG)
+        try:
+            os.mkdir(f"{os.getcwd()}/logs")
+        except OSError:
+            self.get_logger('logger_core').info(
+                f"The output directory already exists or couldn't be created"
+            )
 
     def get_logger(self, name: str) -> logging.Logger:
         logger = logging.getLogger(name)

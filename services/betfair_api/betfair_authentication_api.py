@@ -1,10 +1,14 @@
+from config import Logger
 from services.betfair_api.betfair_connector import Connector
+
+authentication_api_logger = Logger().get_logger("authentication_api_logger")
 
 
 class AuthenticationAPI(Connector):
-    def __init__(self, name: str,
-                 password: str, x_application_id: str
-                 ) -> None:
+    def __init__(
+        self, name: str,
+        password: str, x_application_id: str
+    ) -> None:
         self.auth_name = name
 
         super().__init__()
@@ -26,9 +30,11 @@ class AuthenticationAPI(Connector):
                 "Content-Type": "application/json",
                 "X-Authentication": self.__auth["sessionToken"]
             }
-            print(f"User: {data['username']} is authenticated")
+            authentication_api_logger.info(
+                f"User: {data['username']} is authenticated")
             return None
         if self.__auth["loginStatus"] == "SUSPENDED":
             raise Exception(f'API Error: {self.__auth["loginStatus"]}')
-        raise Exception("Authentication failed, verify your credentials and\
-                    try again")
+        raise Exception(
+            "Authentication failed, verify your credentials and try again",
+        )

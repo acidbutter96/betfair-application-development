@@ -1,9 +1,12 @@
 import pandas as pd
 from pandas import DataFrame
 
+from config import Logger
 from utils.chronos import chronometer
 
 from .parsers import DataParser
+
+data_builder_logger = Logger().get_logger("data_builder_logger")
 
 
 class DataBuilder(DataParser):
@@ -19,8 +22,13 @@ class DataBuilder(DataParser):
         df['event_country_code'] = df['event_country_code'].fillna(value='NF')
         # separate the home team name from away team name
         df['home_team_name'] = df['teams_name'].apply(lambda x: x[0])
-        df['away_team_name'] = df['teams_name'].apply(lambda x: x[1]
-                                                      if len(x) > 1 else 'N/A')
+        self.teams_name = df['teams_name']
+        self.away_team_name = df['teams_name'].apply(
+            lambda x: x[1] if len(x) > 1 else 'N/A'
+        )
+        df['away_team_name'] = df['teams_name'].apply(
+            lambda x: x[1] if len(x) > 1 else 'N/A'
+        )
         df.insert(0, 'home_team_name', df.pop('home_team_name'))
         df.insert(1, 'away_team_name', df.pop('away_team_name'))
         df.insert(0, 'event_id', df.pop('event_id'))
@@ -41,16 +49,16 @@ class DataBuilder(DataParser):
                        competition_list)
             )
             if len(filter_competition) > 0:
-                df.loc[i, 'competition_name'] = filter_competition[0][
-                    'competition_name']
+                df.loc[i, 'competition_name'] = filter_competition[0]['competition_name']
                 df.loc[
                     i,
-                    'competition_id'] = filter_competition[0]['competition_id']
+                    'competition_id',
+                ] = str(filter_competition[0]['competition_id'])
             else:
                 df.loc[i, 'competition_name'] = 'N/A'
                 df.loc[i, 'competition_id'] = 'N/A'
             print(f"Processing from {i} in {chronometer(start)}", end="\r")
-        print(f"Processed in {chronometer(start)}\n")
+        data_builder_logger.info(f"Processed in {chronometer(start)}")
 
         return df
 
@@ -76,7 +84,7 @@ class DataBuilder(DataParser):
                 f"Processing from {e['event_id']} in {chronometer(start)}",
                 end="\r",
             )
-        print(f"\nProcessed in {chronometer(start)}\n")
+        data_builder_logger.info(f"Processed in {chronometer(start)}")
         df = df[df['market_name'] != 'TF']
 
         df = df.sort_values(['event_id', 'market_name'])

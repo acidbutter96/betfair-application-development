@@ -17,9 +17,10 @@ class ExchangeParsers(BetfairApiParsers, ExchangeBuilders, ExchangeUtils):
         super(ExchangeBuilders, self).__init__()
         super(ExchangeUtils, self).__init__()
 
-    def competition_partition_rpc(self, soccer_events: list,
-                                  partition: int = 100
-                                  ):
+    def competition_partition_rpc(
+        self, soccer_events: list,
+        partition: int = 100,
+    ):
         event_ids_list = [x["event_id"] for x in soccer_events]
 
         params = lambda id: {"filter": {"eventIds": [id]}}
@@ -35,9 +36,10 @@ class ExchangeParsers(BetfairApiParsers, ExchangeBuilders, ExchangeUtils):
             builder_args_lambda=builder_lambda
         )
 
-    def market_list_partition_rpc(self, soccer_events: list,
-                                  partition: int = 100
-                                  ):
+    def market_list_partition_rpc(
+        self, soccer_events: list,
+        partition: int = 100,
+    ) -> Tuple[List[Dict], List[Dict]]:
         event_ids_list = [x["event_id"] for x in soccer_events]
 
         params = lambda id: {
@@ -62,12 +64,15 @@ class ExchangeParsers(BetfairApiParsers, ExchangeBuilders, ExchangeUtils):
             "listMarketCatalogue", params
         )
 
-        return self.process_queue(request_list, self.market_list_builder,
-                                  builder_args_lambda=builder_lambda)
+        return self.process_queue(
+            request_list, self.market_list_builder,
+            builder_args_lambda=builder_lambda,
+        )
 
-    def market_catalogue_list_partition_rpc(self, market_catalogue_list,
-                                            partition: int = 100
-                                            ):
+    def market_catalogue_list_partition_rpc(
+        self, market_catalogue_list,
+        partition: int = 100,
+    ):
         market_list = []
 
         def params(market): return {
@@ -131,6 +136,7 @@ class ExchangeParsers(BetfairApiParsers, ExchangeBuilders, ExchangeUtils):
                         {
                             "selection_id": x["selection_id"],
                             "runner_name": x["runner_name"],
+                            "handicap": x["handicap"],
                         } for x in filtered_by_mk_id
                     ]
                 }
