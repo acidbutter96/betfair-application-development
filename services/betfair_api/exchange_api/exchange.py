@@ -23,7 +23,7 @@ class ExchangeAPI(ExchangeParsers):
                 self.soccer_events.append(
                     self.soccer_event_list_builder(event),
                 )
-            self.soccer_events = self.soccer_events[10:15]
+            self.soccer_events = self.soccer_events[:1]
         except Exception as e:
             exchange_api_logger.exception(f"Exception {e}")
             return

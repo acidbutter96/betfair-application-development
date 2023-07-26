@@ -34,7 +34,8 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
 
     def get_data_from_api(self,) -> None:
         data_frame_parser_logger.info(
-            "DataFramePArser.get_data_from_api called")
+            "DataFramePArser.get_data_from_api called",
+        )
         self.get_soccer_event_list()
         self.get_competition_list()
         self.get_market_list()
@@ -195,7 +196,7 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
                     if handicap != 0:
                         name += f"~^~{handicap}"
 
-                if name:
+                if name and len(self.temporary_runners_list[index_to_access_list]["runners"]) > 1:
                     del self.temporary_runners_list[index_to_access_list]["runners"][index_to_access_runner]
                 return name
 
@@ -209,6 +210,9 @@ class DataFrameParser(ExchangeAPI, DataBuilder):
             axis=1,
         )
         del self.temporary_runners_list
+
+        self.df = self.get_handicap_column(self.df)
+        del self.df["runners"]
         data_frame_parser_logger.info(f"Total time: {chronometer(start)}")
 
     def to_csv(self):
